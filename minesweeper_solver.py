@@ -4,8 +4,8 @@ from minesweeper import Minesweeper, Cell
 class MinesweeperSolver:
     """
     Variables X are Cell objects with its values from
-    Domain D, consisting of values from 0-8 and
-    Constraints C, defined as "value is equal to num neighbors"
+    Domain D, consisting of values 1 (mine) or 0 (no mine) and
+    Constraints C, defined as "constant is equal to sum of neighbor variables"
     """
 
     def __init__(self, game=Minesweeper(), starting_point=(0, 0)):
@@ -14,15 +14,7 @@ class MinesweeperSolver:
         self.starting_point = starting_point
 
     def solve(self):
-        self.game.uncover(self.starting_point)  # don't need the return here
-        self.initialize_cells()
-        # while not self.game.game_over:
-
-    def initialize_cells(self):
-        cells = self.game.uncovered
-
-        for cell in cells:
-            self.cells.add(Cell(cell.x, cell.y, self.game.board[cell.x][cell.y]))
-
-        # self.constraint = self.value == len(self.neighbors) or self.value == 9
-
+        self.game.uncover(self.starting_point.x, self.starting_point.y)  # don't need the return here
+        self.cells = self.game.uncovered
+        # while len(self.cells) != 0:
+            # TODO
