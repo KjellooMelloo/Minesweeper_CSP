@@ -42,7 +42,7 @@ mine = pygame.transform.scale(mine, (cell_size, cell_size))
 
 # Create game and AI agent
 game = Minesweeper(rows=HEIGHT, cols=WIDTH, mines=MINES)
-ai = MinesweeperSolver()
+ai = MinesweeperSolver(game)
 
 # Keep track of revealed cells, flagged cells, and if a mine was hit
 revealed = set()
@@ -84,13 +84,13 @@ while True:
                 screen.blit(text, textRect)
 
             # Add a mine, flag, or number if needed
-            if result == "Lost" and game.is_mine((i, j)):
+            if result == "Lost" and game.is_mine(i, j):
                 screen.blit(mine, rect)
             elif (i, j) in flags:
                 screen.blit(flag, rect)
             elif (i, j) in revealed:
                 val = smallFont.render(
-                    str(game.board[i][j]),
+                    str(game.board[i][j].constant),
                     True, BLACK
                 )
                 valTextRect = val.get_rect()
@@ -169,7 +169,8 @@ while True:
             # ai = MinesweeperAI(height=HEIGHT, width=WIDTH)
             revealed = set()
             flags = set()
-            game_over = False
+            game_over = game.game_over
+            result = game.result
             continue
 
         # User-made move
@@ -183,9 +184,8 @@ while True:
 
     # Make move and update AI knowledge
     if move:
-        val, game_over, result = game.uncover(move)
-        if not game_over:
-            revealed = game.uncovered
+        val, game_over, result = game.uncover(move[0], move[1])
+        revealed = game.uncovered_to_coordinates()
             # ai.add_knowledge(move, nearby)
 
     pygame.display.flip()

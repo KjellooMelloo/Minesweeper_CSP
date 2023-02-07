@@ -18,7 +18,7 @@ class Minesweeper:
         self.mines = mines
 
         # Initialize an empty field with no mines aka all 0 then add the mines
-        self.board = [[0 for i in range(0, rows)] for j in range(0, cols)]
+        self.board = [[Cell(i, j, 0) for i in range(0, rows)] for j in range(0, cols)]
         self.generate_board()
 
         # keep track of uncovered cells
@@ -36,30 +36,30 @@ class Minesweeper:
         # place mines
         for mine in mine_coordinates:
             x, y = mine
-            self.board[x][y] = 9
-            neighbors = [(x - 1, y), (x - 1, y + 1), (x, y - 1), (x + 1, y - 1), (x + 1, y), (x + 1, y + 1), (x, y + 1),
-                         (x - 1, y - 1)]
+            self.board[x][y].constant = 9
+            neighbors = self.get_neighbors(x, y)
 
             # increase "mine counter" for all neighbors
             for n in neighbors:
-                if 0 <= n[0] <= self.cols - 1 and 0 <= n[1] <= self.rows - 1 and n not in mine_coordinates:
-                    self.board[n[0]][n[1]] += 1
+                if n not in mine_coordinates:
+                    self.board[n[0]][n[1]].constant += 1
 
-    def uncover(self, cell):
+    def uncover(self, x, y):
         """
         uncovers a cell, adds it to uncovered-set and checks for game over
-        :param cell: cell to uncover
-        :return: value of the cell, game_over state and result string
+        :param x: x value to uncover
+        :param y: y value to uncover
+        :return: Cell at x, y, game_over state and result string
         """
-        x, y = cell
-        val = self.board[x][y]
+        cell = self.board[x][y]
+        val = cell.constant
 
         # make sure that first uncover isn't a mine
         if len(self.uncovered) == 0 and val == 9:
             while val == 9:
-                self.board = [[0 for i in range(0, self.rows)] for j in range(0, self.cols)]
+                self.board = [[Cell(i, j, 0) for i in range(0, self.rows)] for j in range(0, self.cols)]
                 self.generate_board()
-                val = self.board[x][y]
+                val = self.board[x][y].constant
 
         self.uncovered.add(cell)
 
@@ -72,18 +72,28 @@ class Minesweeper:
             self.result = "Won"
             print(self.result)
         if val == 0:
-            self.uncover_zeroes(cell)
+            self.uncover_zeroes(x, y)
 
-        return val, self.game_over, self.result
+        return cell, self.game_over, self.result
 
-    def uncover_zeroes(self, cell):
-        neighbors = self.get_neighbors(cell)
+    def uncover_zeroes(self, x, y):
+        """
+        uncovers all neighboring zeroes
+        :param x: x of current cell
+        :param y: y of current cell
+        """
+        neighbors = self.get_neighbors(x, y)
         for neigh in neighbors:
-            if neigh not in self.uncovered:
-                self.uncover(neigh)
+            if self.board[neigh[0]][neigh[1]] not in self.uncovered:
+                self.uncover(neigh[0], neigh[1])
 
-    def get_neighbors(self, cell):
-        x, y = cell
+    def get_neighbors(self, x, y):
+        """
+        Returns x and y coordinate-list of neighbors
+        :param x: x of current cell
+        :param y: y of current cell
+        :return: neighbors as (x,y)-list
+        """
         neighbors = []
         x_vals = [x - 1, x, x + 1]
         y_vals = [y - 1, y, y + 1]
@@ -98,9 +108,15 @@ class Minesweeper:
 
         return neighbors
 
-    def is_mine(self, cell):
-        x, y = cell
-        return self.board[x][y] == 9
+    def is_mine(self, x, y):
+        return self.board[x][y].constant == 9
+
+    def uncovered_to_coordinates(self):
+        res = set()
+        for cell in self.uncovered:
+            res.add(cell.to_coordinate())
+
+        return res
 
     def print(self):
         """
@@ -110,8 +126,28 @@ class Minesweeper:
         print("Board: \n")
         for i in range(self.rows):
             for j in range(self.cols):
-                if self.board[i][j] == 9:
+                if self.board[i][j].constant == 9:
                     print("| *", end="")
                 else:
-                    print("|", self.board[i][j], end="")
+                    print("|", self.board[i][j].constant, end="")
             print("|")
+
+
+class Cell:
+
+    def __init__(self, x, y, constant):
+        self.x = x
+        self.y = y
+        self.constant = constant
+
+    def to_coordinate(self):
+        return self.y, self.x
+
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y and self.constant == other.constant
+
+    def __hash__(self):
+        return hash((self.x, self.y, self.constant))
+
+    def __str__(self):
+        return "(x:" + str(self.x) + ",y:" + str(self.y) + ",constant:" + str(self.constant) + ")"
