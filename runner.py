@@ -105,7 +105,7 @@ while True:
         (2 / 3) * width + BOARD_PADDING, (1 / 5) * height - 50,
         (width / 3) - BOARD_PADDING * 2, 50
     )
-    buttonText = mediumFont.render("AI Move", True, BLACK)
+    buttonText = mediumFont.render("AI Solve", True, BLACK)
     buttonRect = buttonText.get_rect()
     buttonRect.center = aiButton.center
     pygame.draw.rect(screen, WHITE, aiButton)
@@ -149,24 +149,16 @@ while True:
         mouse = pygame.mouse.get_pos()
 
         # potential TODO
-        # If AI button clicked, make an AI move
+        # If AI button clicked, let AI solve
         if aiButton.collidepoint(mouse) and not game_over:
-            # move = ai.make_safe_move()
-            if move is None:
-                # move = ai.make_random_move()
-                if move is None:
-                    # flags = ai.mines.copy()
-                    print("No moves left to make.")
-                else:
-                    print("No known safe moves, AI making random move.")
-            else:
-                print("AI making safe move.")
+            ai.solve()
+            revealed = game.uncovered_to_coordinates()
             time.sleep(0.2)
 
         # Reset game state
         elif resetButton.collidepoint(mouse):
             game = Minesweeper(rows=HEIGHT, cols=WIDTH, mines=MINES)
-            # ai = MinesweeperAI(height=HEIGHT, width=WIDTH)
+            ai = MinesweeperSolver(game)
             revealed = set()
             flags = set()
             game_over = game.game_over
@@ -186,6 +178,5 @@ while True:
     if move:
         val, game_over, result = game.uncover(move[0], move[1])
         revealed = game.uncovered_to_coordinates()
-            # ai.add_knowledge(move, nearby)
 
     pygame.display.flip()
