@@ -36,7 +36,7 @@ class MinesweeperSolver:
                 print("solver failed")
                 return
 
-            # add all uncovered squares to cells_to_check but remove already checked ones
+            # add all uncovered cells to cells_to_check but remove already checked ones
             self.cells_to_check = self.cells_to_check.union(self.game.uncovered).difference(self.checked)
             self.arc_reduce(cell)
             self.subset_arc_reduce()  # TODO wo?
