@@ -60,6 +60,9 @@ while True:
     screen.fill(BLACK)
 
     # Draw board
+    flags = game.marked_to_coordinates()
+    revealed = game.uncovered_to_coordinates()
+    result = game.result
 
     cells = []
     for i in range(HEIGHT):
@@ -123,7 +126,7 @@ while True:
     screen.blit(buttonText, buttonRect)
 
     # Num mines
-    numMines = "Mines: " + str(game.mines)
+    numMines = "Mines: " + str(game.mines - len(game.marked))
     numMines = mediumFont.render(numMines, True, WHITE)
     numMinesRect = numMines.get_rect()
     numMinesRect.center = ((5 / 6) * width, (3 / 5) * height)
@@ -139,10 +142,7 @@ while True:
         for i in range(HEIGHT):
             for j in range(WIDTH):
                 if cells[i][j].collidepoint(mouse) and (i, j) not in revealed:
-                    if (i, j) in flags:
-                        flags.remove((i, j))
-                    else:
-                        flags.add((i, j))
+                    game.flag(i, j)
                     time.sleep(0.2)
 
     elif left == 1:
@@ -153,6 +153,7 @@ while True:
         if aiButton.collidepoint(mouse) and not game_over:
             ai.solve()
             revealed = game.uncovered_to_coordinates()
+            flags = game.marked_to_coordinates()
             time.sleep(0.2)
 
         # Reset game state
@@ -176,7 +177,6 @@ while True:
 
     # Make move and update AI knowledge
     if move:
-        val, game_over, result = game.uncover(move[0], move[1])
-        revealed = game.uncovered_to_coordinates()
+        game_over = game.uncover(move[0], move[1])
 
     pygame.display.flip()
