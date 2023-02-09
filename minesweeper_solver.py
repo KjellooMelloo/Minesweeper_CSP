@@ -1,6 +1,3 @@
-from minesweeper import Minesweeper, Cell
-
-
 class MinesweeperSolver:
     """
     Variables X are Cell objects with its values from
@@ -35,7 +32,7 @@ class MinesweeperSolver:
     def ac3(self):
         while len(self.cells_to_check) != 0:
             cell = self.cells_to_check.pop()
-            if self.game.uncover(cell.x, cell.x):    # return is (bool, str)
+            if self.game.uncover(cell.x, cell.x):
                 print("solver failed")
                 return
 

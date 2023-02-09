@@ -74,6 +74,7 @@ class Minesweeper:
                 self.board = [[Cell(x, y, 0) for y in range(0, self.rows)] for x in range(0, self.cols)]
                 self.generate_board()
                 val = self.board[x][y].constant
+            self.print()
 
         self.uncovered.add(cell)
 
@@ -144,8 +145,8 @@ class Minesweeper:
         Mines are marked with *
         """
         print("Board: \n")
-        for y in range(self.rows):
-            for x in range(self.cols):
+        for x in range(self.cols):
+            for y in range(self.rows):
                 if self.board[x][y].constant == 9:
                     print("| *", end="")
                 else:
@@ -171,4 +172,4 @@ class Cell:
         return hash((self.x, self.y, self.constant))
 
     def __str__(self):
-        return "(x:" + str(self.x) + ",x:" + str(self.y) + ",constant:" + str(self.constant) + ")"
+        return "(x:" + str(self.x) + ",y:" + str(self.y) + ",constant:" + str(self.constant) + ")"
