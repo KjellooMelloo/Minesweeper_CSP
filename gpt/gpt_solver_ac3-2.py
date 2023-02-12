@@ -42,7 +42,20 @@ class MinesweeperSolver:
                     neighbors.append((x, y))
         return neighbors
 
-    def AC3(self):
+    def ac3(self):
+        """
+        begin
+            for i <- 1 until n do NC(i);    unary/ node consistency
+            Q <- {(i,j) | (i,j) e arcs(G), i != j}
+
+            while Q not empty do
+                begin
+                    select and delete any arc (k, m) from Q;
+                    if REVISE ((k, m)) then Q <- Q u {(i, k) | (i, k) e arcs(G), i != k, i != m}
+            end
+        end
+        :return:
+        """
         queue = list(self.constraints)
         while queue:
             (xi, xj, value) = queue.pop(0)
@@ -55,6 +68,18 @@ class MinesweeperSolver:
         return True
 
     def revise(self, xi, xj, value):
+        """
+        begin
+            DELETE <- false
+            for each x e Di do
+                if there is no y e Dj such that Pij(x, y) then
+                    begin
+                        delete x from Di;
+                        DELETE <- true
+                    end;
+            return DELETE
+        end
+        """
         revised = False
         count = self.get_neighborhood_mines(xi, xj)
         for x in range(xi - 1, xi + 2):
@@ -71,7 +96,7 @@ class MinesweeperSolver:
         return revised
 
     def solve(self):
-        if self.AC3() and self.is_valid():
+        if self.ac3() and self.is_valid():
             return self.board
         return None
 

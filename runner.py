@@ -5,6 +5,7 @@ import time
 from minesweeper import Minesweeper
 from minesweeper_csp import MinesweeperCSP
 from minesweeper_solver import MinesweeperSolver
+from gpt.gpt_solver_ac3_7 import MinesweeperSolver
 
 # adapted from: https://cs50.harvard.edu/ai/2020/projects/1/minesweeper/
 
@@ -44,7 +45,8 @@ mine = pygame.transform.scale(mine, (cell_size, cell_size))
 # Create game and AI agent
 game = Minesweeper(rows=HEIGHT, cols=WIDTH, mines=MINES)
 # ai = MinesweeperSolver(game)
-ai = MinesweeperCSP(game)
+# ai = MinesweeperCSP(game)
+ai = MinesweeperSolver(game)
 
 # Keep track of revealed cells, flagged cells, and if a mine was hit
 revealed = set()
