@@ -1,3 +1,6 @@
+import random
+
+
 class MinesweeperSolver:
     def __init__(self, game, starting_point=(0, 0)):
         self.game = game
@@ -25,7 +28,7 @@ class MinesweeperSolver:
             if self.game.uncover(cell.x, cell.y):  # game over
                 return False
 
-            self.update_constraints(cell)
+            self.update_domains_constraints(cell)
             if cell.constant == 0:  # uncover neighbors if constant is zero (all safe)
                 for n in self.game.get_neighbors(cell.x, cell.y):
                     n_cell = self.board[n[0]][n[1]]
@@ -34,10 +37,12 @@ class MinesweeperSolver:
                 self.uncover_cells()
         return True
 
-    def update_constraints(self, c):
+    def update_domains_constraints(self, c):
         for x, y in self.game.get_neighbors(c.x, c.y):
             self.constraints.add((c.x, c.y, x, y))
             self.constraints.add((x, y, c.x, c.y))
+            self.domains[(c.x, c.y)] = {0}
+            self.values[(c.x, c.y)] = 0
 
     def ac3(self):
         """
@@ -90,48 +95,49 @@ class MinesweeperSolver:
         neighbor = self.board[xm][ym]
         if neighbor not in self.checked:  # not yet uncovered, so we can't know the constant
             return revised
-        neighbor_const = neighbor.constant
+        # neighbor_const = neighbor.constant
+        prev_val = self.values[(xk, yk)]
 
         for val in list(self.domains[(xk, yk)]):
-            # if all(self.does_not_conflict(x, y, xk, yk) for y in self.domains[xk, yk]):
             # get amount of 'probably safe' from neighbors of (xm, ym)
-            safe_around = len(
-                [(x, y) for x, y in self.neighbors[(xm, ym)] if (x, y) in self.domains and 0 in self.domains[(x, y)]])
-            # would this value violate the constraint?
-            if val + len(self.neighbors[(xm, ym)]) - safe_around > neighbor_const:
+            # safe_around = len(
+            #     [(x, y) for x, y in self.neighbors[(xm, ym)] if (x, y) in self.domains and 0 in self.domains[(x, y)]])
+            # # would this value violate the constraint?
+            # if val + len(self.neighbors[(xm, ym)]) - safe_around > neighbor_const:
+            #     self.domains[(xk, yk)].remove(val)
+            #     revised = True
+            self.values[(xk, yk)] = val
+            if not any(self.does_not_violate_constraints(xm, ym, mval) for mval in self.domains[xm, ym]):
                 self.domains[(xk, yk)].remove(val)
                 revised = True
+        self.values[(xk, yk)] = prev_val
+
         return revised
 
-    def does_not_conflict(self, x, y, xk, yk):  # TODO bessere Alternative? Analoger zum Pseudocode
-        return x + y <= self.board[xk][yk]
+    def does_not_violate_constraints(self, x, y, value):
+        prev_val = self.values[(x, y)]
+        self.values[(x, y)] = value
+        for n in self.game.get_neighbors(x, y):
+            nx, ny = n[0], n[1]
+            if self.board[nx][ny] not in self.checked:  # ignore covered cells, because we don't know their constant
+                continue
+            if not self.meets_constraint(nx, ny):
+                return False
 
-    def backtrack(self):
-        if not self.ac3():
+        self.values[(x, y)] = prev_val
+        return True
+
+    def meets_constraint(self, x, y):
+        const = self.board[x][y].constant
+        num_mines = sum(
+            self.values[(i, j)] for i, j in self.neighbors[(x, y)] if self.values[(i, j)] == 1)
+        if num_mines > const:  # would be too many mines
             return False
-
-        if all(len(self.domains[(x, y)]) == 1 for x, y in self.variables) and all(
-                self.is_consistent(x, y) for x, y in self.variables):
-            return self.values
-
-        unassigned = [(x, y) for x, y in self.variables if len(self.domains[(x, y)]) > 1]
-        for x, y in unassigned:
-            for value in list(self.domains[(x, y)]):
-
-                original_domain = self.domains[(x, y)].copy()
-                original_value = self.values[(x, y)]
-
-                self.values[(x, y)] = value
-                self.domains[(x, y)] = {value}
-
-                result = self.backtrack()
-                if result:
-                    return result
-
-                self.domains[(x, y)] = original_domain
-                self.values[(x, y)] = original_value
-
-        return False
+        elif len([self.values[(i, j)] for i, j in self.neighbors[(x, y)] if
+                  self.values[(i, j)] is None]) < const - num_mines:  # would be too few mines
+            return False
+        else:
+            return True
 
     def backtrack(self, assignment, cells_left, mines_left, solutions):  # TODO
         if len(assignment) > cells_left:
@@ -139,24 +145,24 @@ class MinesweeperSolver:
         elif sum(assignment) > mines_left:
             return
         else:
-            for choice in [0, 1]:
+            for choice in [0, 1]:  # domain
                 assignment.append(choice)
                 if sum(assignment) == mines_left and len(assignment) == cells_left:
-                    valid = self.check_solution_validity(assignment)
+                    valid = self.is_solution_valid(assignment)
                     if valid:
                         c = assignment.copy()
                         solutions.append(c)
                 self.backtrack(assignment, cells_left, mines_left, solutions)
-                assignment.pop()
+                # assignment.pop()
         return solutions
 
-    def check_solution_validity(self, comb):
+    def is_solution_valid(self, assignment):
         all_valid = False
-        for cell, value in zip(self.unassigned, comb):  # TODO
-            all_valid = self.is_consistent(cell, value)
-        # after checking validity, set the cell's val back to None
+        for cell, value in zip(self.unassigned, assignment):  # TODO
+            all_valid = self.does_not_violate_constraints(cell[0], cell[1], value)
+        # after checking validity, set the cell's value back to None
         for cell in self.unassigned:
-            cell.value = None
+            self.values[(cell[0], cell[1])] = None
         return all_valid
 
     def is_consistent(self, x, y):
@@ -166,6 +172,28 @@ class MinesweeperSolver:
     def solve(self):
         if not self.ac3():
             return False
+
+        # TODO eigene Methode
         self.unassigned = [(x, y) for x, y in self.variables if len(self.domains[(x, y)]) > 1]
-        solutions = self.backtrack([], len(self.unassigned), self.game.mines - self.game.marked, [])
-        safe_cells = [i for i in range(len(solutions[0])) if ] # TODO
+        solutions = self.backtrack([], len(self.unassigned), self.game.mines - len(self.game.marked), [])
+
+        if not solutions:  # no solution found -> pick a random cell to uncover
+            rand_cell = self.unassigned[random.randint(0, len(self.unassigned) - 1)]
+            self.cells_to_check.add(self.board[rand_cell[0]][rand_cell[1]])
+            return self.solve()
+
+        # sum of values for every solution
+        sum_sol = [sum(row[i] for row in solutions) for i in range(len(solutions[0]))]
+        any_safe = False
+        for i in range(len(sum_sol)):
+            if sum_sol[i] == 0:  # safe cell in every solution
+                self.cells_to_check.add(self.board[self.unassigned[i][0]][self.unassigned[i][1]])
+                any_safe = True
+
+        if not any_safe:  # take first solution and add safe cells
+            first_sol = solutions[0]
+            for i in range(first_sol):
+                if first_sol[i] == 0:
+                    self.cells_to_check.add(self.board[self.unassigned[i][0]][self.unassigned[i][1]])
+
+        return self.solve()

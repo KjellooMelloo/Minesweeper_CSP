@@ -53,8 +53,28 @@ class MinesweeperSolver:
         return True
 
     def backtrack(self):
-        if not any(len(self.domains[var]) == 0 for var in self.variables):
-            return self.domains
-        var = min(self.variables, key=lambda var: len(self.domains[var]))
-        for value in self.domains[var]:
-            assignment = Minesweeper
+        if not self.ac3():
+            return False
+
+        if all(len(self.domains[(x, y)]) == 1 for x, y in self.variables) and all(
+                self.is_consistent(x, y) for x, y in self.variables):
+            return self.values
+
+        unassigned = [(x, y) for x, y in self.variables if len(self.domains[(x, y)]) > 1]
+        for x, y in unassigned:
+            for value in list(self.domains[(x, y)]):
+
+                original_domain = self.domains[(x, y)].copy()
+                original_value = self.values[(x, y)]
+
+                self.values[(x, y)] = value
+                self.domains[(x, y)] = {value}
+
+                result = self.backtrack()
+                if result:
+                    return result
+
+                self.domains[(x, y)] = original_domain
+                self.values[(x, y)] = original_value
+
+        return False
