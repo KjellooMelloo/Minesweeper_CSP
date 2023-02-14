@@ -21,6 +21,8 @@ class MinesweeperSolver:
         # for x2, y2 in self.neighbors[(x, y)]:
         # self.constraints.add((x, y, x2, y2))
 
+    # TODO cells_to_check und checked als set() von (x, y)
+
     def uncover_cells(self):
         while self.cells_to_check:
             cell = self.cells_to_check.pop()
@@ -64,7 +66,7 @@ class MinesweeperSolver:
             xk, yk, xm, ym = queue.pop()
             if self.revise(xk, yk, xm, ym):
                 if (xk, yk) in self.domains and len(self.domains[(xk, yk)]) == 0:  # inconsistent/ no solution
-                    return False
+                    return True
                 self.values[(xk, yk)] = list(self.domains[(xk, yk)])[0]  # set value
                 for xi, yi in self.neighbors[(xk, yk)]:
                     if (xi, yi) in self.domains and (xi, yi, xk, yk) not in queue:
@@ -76,10 +78,10 @@ class MinesweeperSolver:
                         if self.values[(x, y)] == 0 and (x, y) not in self.checked:
                             self.cells_to_check.add(self.board[x][y])
 
-        if self.cells_to_check:  # can continue
-            self.ac3()
-        elif self.game.game_over:  # first set domains and values before checking for game over, so solver is consistent
+        if self.game.game_over:  # first set domains and values before checking for game over, so solver is consistent
             return True
+        elif self.cells_to_check:  # can continue
+            self.ac3()
         else:  # finished for now
             return False
 
@@ -112,14 +114,14 @@ class MinesweeperSolver:
             #     self.domains[(xk, yk)].remove(val)
             #     revised = True
             self.values[(xk, yk)] = val
-            if not any(self.does_not_violate_constraints(xm, ym, mval) for mval in self.domains[xm, ym]):
+            if all(self.violates_constraints(xm, ym, mval) for mval in self.domains[xm, ym]):
                 self.domains[(xk, yk)].remove(val)
                 revised = True
         self.values[(xk, yk)] = prev_val
 
         return revised
 
-    def does_not_violate_constraints(self, x, y, value):
+    def violates_constraints(self, x, y, value):
         prev_val = self.values[(x, y)]
         self.values[(x, y)] = value
         for n in self.game.get_neighbors(x, y):
@@ -127,63 +129,24 @@ class MinesweeperSolver:
             if self.board[nx][ny] not in self.checked:  # ignore covered cells, because we don't know their constant
                 continue
             if not self.meets_constraint(nx, ny):
-                return False
+                self.values[(x, y)] = prev_val
+                return True
 
         self.values[(x, y)] = prev_val
-        return True
+        return False
 
     def meets_constraint(self, x, y):
         const = self.board[x][y].constant
         num_mines = sum(
             self.values[(i, j)] for i, j in self.neighbors[(x, y)] if self.values[(i, j)] == 1)
+        unknown = len([self.values[(i, j)] for i, j in self.neighbors[(x, y)] if
+                       self.values[(i, j)] is None])
         if num_mines > const:  # would be too many mines
             return False
-        elif len([self.values[(i, j)] for i, j in self.neighbors[(x, y)] if
-                  self.values[(i, j)] is None]) < const - num_mines:  # would be too few mines
+        elif unknown < const - num_mines:  # would be too few mines
             return False
         else:
             return True
-
-    def backtrack(self, assignment, cells_left, mines_left, solutions):  # TODO
-        if len(assignment) > cells_left:
-            return
-        elif sum(assignment) > mines_left:
-            return
-        else:
-            for choice in [0, 1]:  # domain
-                assignment.append(choice)
-                if sum(assignment) == mines_left and len(assignment) == cells_left:
-                    valid = self.is_solution_valid(assignment)
-                    if valid:
-                        c = assignment.copy()
-                        solutions.append(c)
-                self.backtrack(assignment, cells_left, mines_left, solutions)
-                assignment.pop()
-        return solutions
-
-    def is_solution_valid(self, assignment):
-        all_valid = False
-        for cell, value in zip(self.unassigned, assignment):  # TODO
-            all_valid = self.does_not_violate_constraints(cell[0], cell[1], value)
-        # after checking validity, set the cell's value back to None
-        for cell in self.unassigned:
-            self.values[(cell[0], cell[1])] = None
-        return all_valid
-
-    def is_cell_consistent(self, x, y):
-        return all(self.values[(i, j)] is not None for i, j in self.neighbors[(x, y)]) and sum(
-            self.values[(i, j)] for i, j in self.neighbors[(x, y)]) == self.board[x][y].constant
-
-    def is_solver_consistent(self):
-        """
-        Checks if every cell, that is not marked as a mine, is consistent. Then checks that every value is set. Then
-        checks if every domain has a size of 1. Then checks that the sum of self.values is equals to amount of mines
-        :return: True, when everything is consistent, False else
-        """
-        return all(self.is_cell_consistent(x, y) for x, y in self.variables if self.values[(x, y)] != 1) and not any(
-            self.values[(x, y)] is None for x, y in self.variables) and all(
-            len(self.domains[(x, y)]) == 1 for x, y in self.variables) and sum(
-            self.values.values()) == self.game.mines
 
     def find_solutions(self):
         self.unassigned = [(x, y) for x, y in self.variables if len(self.domains[(x, y)]) > 1]
@@ -208,7 +171,48 @@ class MinesweeperSolver:
                 if first_sol[i] == 0:
                     self.cells_to_check.add(self.board[self.unassigned[i][0]][self.unassigned[i][1]])
 
-        self.solve()
+        return self.solve()
+
+    def backtrack(self, assignment, cells_left, mines_left, solutions):  # TODO
+        if len(assignment) > cells_left:
+            return
+        elif sum(assignment) > mines_left:
+            return
+        else:
+            for choice in [0, 1]:  # domain
+                assignment.append(choice)
+                if sum(assignment) == mines_left and len(assignment) == cells_left:
+                    valid = self.is_solution_valid(assignment)
+                    if valid:
+                        c = assignment.copy()
+                        solutions.append(c)
+                self.backtrack(assignment, cells_left, mines_left, solutions)
+                assignment.pop()
+        return solutions
+
+    def is_solution_valid(self, assignment):
+        all_valid = True
+        for cell, value in zip(self.unassigned, assignment):
+            all_valid = self.violates_constraints(cell[0], cell[1], value)
+        # after checking validity, set the cell's value back to None
+        for cell in self.unassigned:
+            self.values[(cell[0], cell[1])] = None
+        return all_valid
+
+    def is_cell_consistent(self, x, y):
+        return all(self.values[(i, j)] is not None for i, j in self.neighbors[(x, y)]) and sum(
+            self.values[(i, j)] for i, j in self.neighbors[(x, y)]) == self.board[x][y].constant
+
+    def is_solver_consistent(self):
+        """
+        Checks if every cell, that is not marked as a mine, is consistent. Then checks that every value is set. Then
+        checks if every domain has a size of 1. Then checks that the sum of self.values is equals to amount of mines
+        :return: True, when everything is consistent, False else
+        """
+        return all(self.is_cell_consistent(x, y) for x, y in self.variables if self.values[(x, y)] != 1) and not any(
+            self.values[(x, y)] is None for x, y in self.variables) and all(
+            len(self.domains[(x, y)]) == 1 for x, y in self.variables) and sum(
+            self.values.values()) == self.game.mines
 
     def solve(self):
         if self.ac3():  # ac3 is finished and game is over
@@ -224,4 +228,4 @@ class MinesweeperSolver:
                     self.cells_to_check.add(self.board[x][y])
             return self.ac3()
 
-        self.find_solutions()
+        return self.find_solutions()
