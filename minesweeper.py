@@ -9,7 +9,7 @@ class Minesweeper:
     """
 
     def __init__(self, rows=9, cols=9, mines=10):
-        assert 3 < rows < 50 and 3 < cols < 50 and 0 < mines  # check parameters
+        assert 2 < rows < 50 and 2 < cols < 50 and 0 < mines  # check parameters
         assert 0 < mines / (rows * cols) < 0.5  # assure max mine density of 0.5
 
         # Set initial cols, rows, and number of mines
@@ -86,8 +86,8 @@ class Minesweeper:
             self.game_over = True
             self.result = "Won"
             print(self.result)
-        if val == 0:
-            self.uncover_zeroes(x, y)
+        # if val == 0:
+            # self.uncover_zeroes(x, y)
 
         return self.game_over
 
