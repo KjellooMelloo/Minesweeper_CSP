@@ -5,14 +5,14 @@ class MinesweeperSolver:
     def __init__(self, game, starting_point=(0, 0)):
         self.game = game
         self.board = game.board
-        self.variables = [(x, y) for x in range(self.game.cols) for y in range(self.game.rows)]  # if board[x][y] == -1]
+        self.variables = [(x, y) for x in range(self.game.cols) for y in range(self.game.rows)]  # if board[i][j] == -1]
         self.domains = {(x, y): {0, 1} for x, y in self.variables}
         self.values = {(x, y): None for x, y in self.variables}
         self.constraints = set()
         self.neighbors = {}
-        self.starting_point = starting_point
+        start_x, start_y = starting_point
         self.cells_to_check = set()
-        self.cells_to_check.add(self.board[starting_point[0]][starting_point[1]])
+        self.cells_to_check.add((start_x, start_y))
         self.checked = set()
 
         for x, y in self.variables:
@@ -21,30 +21,29 @@ class MinesweeperSolver:
         # for x2, y2 in self.neighbors[(x, y)]:
         # self.constraints.add((x, y, x2, y2))
 
-    # TODO cells_to_check und checked als set() von (x, y)
-
     def uncover_cells(self):
         while self.cells_to_check:
-            cell = self.cells_to_check.pop()
-            self.checked.add(cell)
-            if self.game.uncover(cell.x, cell.y):  # game over
-                self.update_domains_constraints(cell)  # update for last cell in case game is won - for consistency
+            x, y = self.cells_to_check.pop()
+            cell = self.board[x][y]
+            self.checked.add((x, y))
+            if self.game.uncover(x, y):  # game over
+                self.update_domains_constraints(x, y)  # update for last cell in case game is won - for consistency
                 return
 
-            self.update_domains_constraints(cell)
+            self.update_domains_constraints(x, y)
             if cell.constant == 0:  # uncover neighbors if constant is zero (all safe)
-                for n in self.game.get_neighbors(cell.x, cell.y):
-                    n_cell = self.board[n[0]][n[1]]
-                    if n_cell not in self.checked:
-                        self.cells_to_check.add(self.board[n_cell.x][n_cell.y])
+                for n in self.game.get_neighbors(x, y):
+                    nx, ny = n
+                    if (nx, ny) not in self.checked:
+                        self.cells_to_check.add((nx, ny))
                 self.uncover_cells()
 
-    def update_domains_constraints(self, c):
-        for x, y in self.game.get_neighbors(c.x, c.y):
-            self.constraints.add((c.x, c.y, x, y))
-            self.constraints.add((x, y, c.x, c.y))
-            self.domains[(c.x, c.y)] = {0}
-            self.values[(c.x, c.y)] = 0
+    def update_domains_constraints(self, x, y):
+        for i, j in self.game.get_neighbors(x, y):
+            self.constraints.add((x, y, i, j))
+            self.constraints.add((i, j, x, y))
+            self.domains[(x, y)] = {0}
+            self.values[(x, y)] = 0
 
     def ac3(self):
         """
@@ -76,7 +75,7 @@ class MinesweeperSolver:
                 if self.is_cell_consistent(xk, yk):  # can uncover every cell with value 0
                     for x, y in self.neighbors[(xk, yk)]:
                         if self.values[(x, y)] == 0 and (x, y) not in self.checked:
-                            self.cells_to_check.add(self.board[x][y])
+                            self.cells_to_check.add((x, y))
 
         if self.game.game_over:  # first set domains and values before checking for game over, so solver is consistent
             return True
@@ -99,8 +98,7 @@ class MinesweeperSolver:
         end
         """
         revised = False
-        neighbor = self.board[xm][ym]
-        if neighbor not in self.checked:  # not yet uncovered, so we can't know the constant
+        if (xm, ym) not in self.checked:  # not yet uncovered, so we can't know the constant
             return revised
         # neighbor_const = neighbor.constant
         prev_val = self.values[(xk, yk)]
@@ -125,8 +123,8 @@ class MinesweeperSolver:
         prev_val = self.values[(x, y)]
         self.values[(x, y)] = value
         for n in self.game.get_neighbors(x, y):
-            nx, ny = n[0], n[1]
-            if self.board[nx][ny] not in self.checked:  # ignore covered cells, because we don't know their constant
+            nx, ny = n
+            if (nx, ny) not in self.checked:  # ignore covered cells, because we don't know their constant
                 continue
             if not self.meets_constraint(nx, ny):
                 self.values[(x, y)] = prev_val
@@ -141,6 +139,7 @@ class MinesweeperSolver:
             self.values[(i, j)] for i, j in self.neighbors[(x, y)] if self.values[(i, j)] == 1)
         unknown = len([self.values[(i, j)] for i, j in self.neighbors[(x, y)] if
                        self.values[(i, j)] is None])
+        # marked = len([self.board[i][j] for i, j in self.neighbors[(i, j)] if self.board[i][j] in self.game.marked])
         if num_mines > const:  # would be too many mines
             return False
         elif unknown < const - num_mines:  # would be too few mines
@@ -153,8 +152,8 @@ class MinesweeperSolver:
         solutions = self.backtrack([], len(self.unassigned), self.game.mines - len(self.game.marked), [])
 
         if not solutions:  # no solution found -> pick a random cell to uncover
-            rand_cell = self.unassigned[random.randint(0, len(self.unassigned) - 1)]
-            self.cells_to_check.add(self.board[rand_cell[0]][rand_cell[1]])
+            rand_x, rand_y = self.unassigned[random.randint(0, len(self.unassigned) - 1)]
+            self.cells_to_check.add((rand_x, rand_y))
             return self.solve()
 
         # sum of values for every solution
@@ -162,14 +161,16 @@ class MinesweeperSolver:
         any_safe = False
         for i in range(len(sum_sol)):
             if sum_sol[i] == 0:  # safe cell in every solution
-                self.cells_to_check.add(self.board[self.unassigned[i][0]][self.unassigned[i][1]])
+                x, y = self.unassigned[i]
+                self.cells_to_check.add((x, y))
                 any_safe = True
 
         if not any_safe:  # take first solution and add safe cells
             first_sol = solutions[0]
             for i in range(len(first_sol)):
                 if first_sol[i] == 0:
-                    self.cells_to_check.add(self.board[self.unassigned[i][0]][self.unassigned[i][1]])
+                    x, y = self.unassigned[i]
+                    self.cells_to_check.add((x, y))
 
         return self.solve()
 
@@ -192,11 +193,11 @@ class MinesweeperSolver:
 
     def is_solution_valid(self, assignment):
         all_valid = True
-        for cell, value in zip(self.unassigned, assignment):
-            all_valid = self.violates_constraints(cell[0], cell[1], value)
+        for (x, y), value in zip(self.unassigned, assignment):
+            all_valid = self.violates_constraints(x, y, value)
         # after checking validity, set the cell's value back to None
-        for cell in self.unassigned:
-            self.values[(cell[0], cell[1])] = None
+        for (x, y) in self.unassigned:
+            self.values[(x, y)] = None
         return all_valid
 
     def is_cell_consistent(self, x, y):
@@ -225,7 +226,7 @@ class MinesweeperSolver:
         if mines_left == 0 and cells_left > 0:
             for x, y in self.variables:
                 if len(self.domains[(x, y)]) > 1:
-                    self.cells_to_check.add(self.board[x][y])
+                    self.cells_to_check.add((x, y))
             return self.ac3()
 
         return self.find_solutions()

@@ -47,7 +47,6 @@ class TestMinesweeperSolver(TestCase):
         | 0| 1| 1|
         | 0| 1| *|
         """
-        self.solver.cells_to_check.remove(self.game.board[0][0])
         for x in range(self.game.cols):
             for y in range(self.game.rows):
                 if x == y == 2:
@@ -57,7 +56,6 @@ class TestMinesweeperSolver(TestCase):
                 else:
                     self.game.board[x][y] = Cell(x, y, 0)
 
-        self.solver.cells_to_check.add(self.game.board[0][0])
         self.game.print()
 
     def mine_in_center_plus_hints(self):
@@ -66,7 +64,6 @@ class TestMinesweeperSolver(TestCase):
         | 1| *| 1|
         | 1| 1| 1|
         """
-        self.solver.cells_to_check.remove(self.game.board[0][0])
         for x in range(self.game.cols):
             for y in range(self.game.rows):
                 if x == y == 1:
@@ -74,7 +71,6 @@ class TestMinesweeperSolver(TestCase):
                 else:
                     self.game.board[x][y] = Cell(x, y, 1)
         self.game.print()
-        # add first row as hints
-        self.solver.cells_to_check.add(self.solver.board[0][0])
-        self.solver.cells_to_check.add(self.solver.board[0][1])
-        self.solver.cells_to_check.add(self.solver.board[0][2])
+        # add upper left corner as hints
+        self.solver.cells_to_check.add((1, 0))
+        self.solver.cells_to_check.add((0, 1))
