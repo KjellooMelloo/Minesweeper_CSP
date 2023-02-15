@@ -1,8 +1,8 @@
 from unittest import TestCase
 
-from minesweeper import Minesweeper, Cell
+from minesweeper import Minesweeper
 from gpt.gpt_solver_ac3_7 import MinesweeperSolver
-from BoardPatternGenerator import BoardPatternGenerator
+from BasicPatternGenerator import BasicPatternGenerator
 
 
 class TestMinesweeperSolver(TestCase):
@@ -14,7 +14,7 @@ class TestMinesweeperSolver(TestCase):
     def setUp(cls) -> None:
         cls.game = Minesweeper(3, 3, 1)
         cls.solver = MinesweeperSolver(cls.game)
-        cls.generator = BoardPatternGenerator(cls.game, cls.solver)
+        cls.generator = BasicPatternGenerator(cls.game, cls.solver)
 
     @classmethod
     def tearDown(cls) -> None:
@@ -89,8 +89,8 @@ class TestMinesweeperSolver(TestCase):
         self.assertTrue(self.solver.violates_constraints(0, 2, 1))
         self.assertFalse(self.solver.violates_constraints(0, 2, 0))
 
-    def test_1_2_1_pattern(self):
-        self.generator.mines_1_2_1()
+    def test_pattern_1_2(self):
+        self.generator.pattern_1_2()
         self.solver.cells_to_check.add((1, 2))
         self.solver.uncover_cells()
         # (0, 2) and (2, 2) must be mines
@@ -110,8 +110,8 @@ class TestMinesweeperSolver(TestCase):
         self.assertTrue(self.solver.violates_constraints(1, 2, 1))
         self.assertFalse(self.solver.violates_constraints(1, 2, 0))
 
-    def test_2_3_2_pattern(self):
-        self.generator.mines_2_3_2()
+    def test_pattern_b1(self):
+        self.generator.pattern_b1()
         self.solver.uncover_cells()
         # lower row must be mines
         self.assertTrue(self.solver.violates_constraints(0, 2, 0))

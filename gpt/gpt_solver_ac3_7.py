@@ -219,6 +219,8 @@ class MinesweeperSolver:
         if self.ac3():  # ac3 is finished and game is over
             return self.game.game_over
         if self.is_solver_consistent():
+            self.game.game_over = True
+            self.game.result = "Won"
             return True
 
         mines_left = self.game.mines - len(self.game.marked)
