@@ -54,6 +54,19 @@ class TestMinesweeperSolver(TestCase):
         self.assertTrue(self.solver.values[(1, 2)] == 1)  # mine value correct
         self.assertTrue(self.solver.values[(2, 2)] == 1)  # mine value correct
 
+    def test_mines_4(self):
+        self.generator.mines_4()
+        self.preconditions()
+        self.assertTrue(self.solver.solve())
+        self.postconditions()
+        self.assertTrue(len(self.solver.constraints) == 0)
+        self.assertTrue(self.solver.domains[(i, j)] == {0} for i, j in range(3) if i != 1 and j != 1)  # domains correct
+        self.assertTrue(self.solver.domains[(i, j)] == {1} for i, j in range(3) if i == 1 or j == 1)  # domains correct
+        self.assertTrue(self.solver.values[(1, 0)] == 1)  # mine value correct
+        self.assertTrue(self.solver.values[(0, 1)] == 1)  # mine value correct
+        self.assertTrue(self.solver.values[(2, 1)] == 1)  # mine value correct
+        self.assertTrue(self.solver.values[(1, 2)] == 1)  # mine value correct
+
     # ----- HELPER ----- #
 
     def preconditions(self):

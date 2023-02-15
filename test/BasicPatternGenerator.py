@@ -167,5 +167,4 @@ class BasicPatternGenerator:
                 if y != 2:
                     self.solver.cells_to_check.add((x, y))
 
-        # self.solver.cells_to_check.add((1, 2))
         self.game.print()

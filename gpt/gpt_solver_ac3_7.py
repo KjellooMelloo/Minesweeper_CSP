@@ -148,24 +148,30 @@ class MinesweeperSolver:
             return True
 
     def find_solutions(self):
+        print("Generating solutions")
         self.unassigned = [(x, y) for x, y in self.variables if len(self.domains[(x, y)]) > 1]
         solutions = self.backtrack([], len(self.unassigned), self.game.mines - len(self.game.marked), [])
 
         if not solutions:  # no solution found -> pick a random cell to uncover
             rand_x, rand_y = self.unassigned[random.randint(0, len(self.unassigned) - 1)]
             self.cells_to_check.add((rand_x, rand_y))
+            print("No solution found, picked random cell: ", rand_x, rand_y)
             return self.solve()
 
+        print("Solutions found: ", len(solutions))
         # sum of values for every solution
         sum_sol = [sum(row[i] for row in solutions) for i in range(len(solutions[0]))]
         any_safe = False
+        print("Looking for a safe cell in any solution")
         for i in range(len(sum_sol)):
             if sum_sol[i] == 0:  # safe cell in every solution
                 x, y = self.unassigned[i]
                 self.cells_to_check.add((x, y))
                 any_safe = True
+                print("Found safe cell: ", x, y)
 
         if not any_safe:  # take first solution and add safe cells
+            print("No safe cells found. Taking first solution")
             first_sol = solutions[0]
             for i in range(len(first_sol)):
                 if first_sol[i] == 0:
@@ -193,16 +199,23 @@ class MinesweeperSolver:
 
     def is_solution_valid(self, assignment):
         all_valid = True
-        for (x, y), value in zip(self.unassigned, assignment):
-            all_valid = self.violates_constraints(x, y, value)
-        # after checking validity, set the cell's value back to None
+        for (x, y), value in zip(self.unassigned, assignment):  # set every value and domains
+            self.values[(x, y)] = value
+            self.domains[(x, y)] = {value}
+        for (x, y), value in zip(self.unassigned, assignment):  # check for constraint violations and cell consistency
+            all_valid = all_valid and not self.violates_constraints(x, y, value) and self.is_cell_consistent(x, y)
+
+        # after checking validity, reset values and domains
         for (x, y) in self.unassigned:
             self.values[(x, y)] = None
+            self.domains[(x, y)] = {None}
         return all_valid
 
     def is_cell_consistent(self, x, y):
-        return all(self.values[(i, j)] is not None for i, j in self.neighbors[(x, y)]) and sum(
+        safe_consistent = all(self.values[(i, j)] is not None for i, j in self.neighbors[(x, y)]) and sum(
             self.values[(i, j)] for i, j in self.neighbors[(x, y)]) == self.board[x][y].constant
+        mine_consistent = self.values[(x, y)] == 1 and self.domains[(x, y)] == {1} and self.board[x][y].constant
+        return safe_consistent or mine_consistent
 
     def is_solver_consistent(self):
         """
@@ -216,16 +229,21 @@ class MinesweeperSolver:
             self.values.values()) == self.game.mines
 
     def solve(self):
+        print("Starting solve with AC3 and revise")
         if self.ac3():  # ac3 is finished and game is over
+            print("Found solution")
             return self.game.game_over
         if self.is_solver_consistent():
+            print("Found solution")
             self.game.game_over = True
             self.game.result = "Won"
             return True
 
         mines_left = self.game.mines - len(self.game.marked)
         cells_left = self.game.cols * self.game.rows - len(self.game.uncovered) - len(self.game.marked)
+        print("Mines left: {}, Cells left: {}".format(str(mines_left), str(cells_left)))
         if mines_left == 0 and cells_left > 0:
+            print("No more mines left, can uncover rest of cells")
             for x, y in self.variables:
                 if len(self.domains[(x, y)]) > 1:
                     self.cells_to_check.add((x, y))
