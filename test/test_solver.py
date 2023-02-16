@@ -67,18 +67,48 @@ class TestMinesweeperSolver(TestCase):
         self.assertTrue(self.solver.values[(2, 1)] == 1)  # mine value correct
         self.assertTrue(self.solver.values[(1, 2)] == 1)  # mine value correct
 
+    def test_mines_corner_3(self):
+        self.generator.mines_corner_3()
+        self.preconditions()
+        self.assertTrue(self.solver.solve())
+        self.postconditions()
+        self.assertTrue(len(self.solver.constraints) == 0)
+        self.assertTrue(self.solver.domains[(1, 1)] == {1})  # domain correct
+        self.assertTrue(self.solver.domains[(1, 2)] == {1})  # domain correct
+        self.assertTrue(self.solver.domains[(2, 1)] == {1})  # domain correct
+        self.assertTrue(self.solver.values[(1, 1)] == 1)  # mine value correct
+        self.assertTrue(self.solver.values[(1, 2)] == 1)  # mine value correct
+        self.assertTrue(self.solver.values[(2, 1)] == 1)  # mine value correct
+
+    def test_mines_edge_5(self):
+        self.generator.mines_edge_5()
+        self.preconditions()
+        self.assertTrue(self.solver.solve())
+        self.postconditions()
+        self.assertTrue(len(self.solver.constraints) == 0)
+        self.assertTrue(self.solver.domains[(0, 1)] == {1})  # domain correct
+        self.assertTrue(self.solver.domains[(0, 2)] == {1})  # domain correct
+        self.assertTrue(self.solver.domains[(1, 1)] == {1})  # domain correct
+        self.assertTrue(self.solver.domains[(2, 1)] == {1})  # domain correct
+        self.assertTrue(self.solver.domains[(2, 2)] == {1})  # domain correct
+        self.assertTrue(self.solver.values[(0, 1)] == 1)  # mine value correct
+        self.assertTrue(self.solver.values[(0, 2)] == 1)  # mine value correct
+        self.assertTrue(self.solver.values[(1, 1)] == 1)  # mine value correct
+        self.assertTrue(self.solver.values[(2, 1)] == 1)  # mine value correct
+        self.assertTrue(self.solver.values[(2, 2)] == 1)  # mine value correct
+
     # ----- HELPER ----- #
 
     def preconditions(self):
         self.assertFalse(all(
-            self.solver.is_cell_consistent(x, y) for x, y in self.solver.variables if self.solver.values[(x, y)] != 1))
+            self.solver.is_cell_consistent(x, y) for x, y in self.solver.variables))
         self.assertTrue(not any(
-            self.solver.is_cell_consistent(x, y) for x, y in self.solver.variables if self.solver.values[(x, y)] != 1))
+            self.solver.is_cell_consistent(x, y) for x, y in self.solver.variables))
         self.assertFalse(self.solver.is_solver_consistent())
 
     def postconditions(self):
         self.assertTrue(all(
-            self.solver.is_cell_consistent(x, y) for x, y in self.solver.variables if self.solver.values[(x, y)] != 1))
+            self.solver.is_cell_consistent(x, y) for x, y in self.solver.variables))
         self.assertTrue(all(self.solver.values[(x, y)] is not None for x, y in self.solver.variables))
         self.assertTrue(all(len(self.solver.domains[(x, y)]) == 1 for x, y in self.solver.variables))
         self.assertTrue(sum(self.solver.values[(x, y)] for x, y in self.solver.variables) == self.game.mines)

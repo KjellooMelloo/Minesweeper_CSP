@@ -10,6 +10,7 @@ class MinesweeperSolver:
         self.values = {(x, y): None for x, y in self.variables}
         self.constraints = set()
         self.neighbors = {}
+        self.unassigned = []
         start_x, start_y = starting_point
         self.cells_to_check = set()
         self.cells_to_check.add((start_x, start_y))
@@ -57,6 +58,7 @@ class MinesweeperSolver:
                     if REVISE ((k, m)) then Q <- Q u {(i, k) | (i, k) ∈ arcs(G), i != k, i != m}
             end
         end
+
         :return: False, when game over (won or lost), True, when no more progress possible yet
         """
         self.uncover_cells()
@@ -68,7 +70,7 @@ class MinesweeperSolver:
                     return True
                 self.values[(xk, yk)] = list(self.domains[(xk, yk)])[0]  # set value
                 for xi, yi in self.neighbors[(xk, yk)]:
-                    if (xi, yi) in self.domains and (xi, yi, xk, yk) not in queue:
+                    if (xi, yi, xk, yk) not in queue:
                         queue.add((xi, yi, xk, yk))
                 if self.values[(xk, yk)] == 1:
                     self.game.flag(xk, yk)
@@ -180,7 +182,7 @@ class MinesweeperSolver:
 
         return self.solve()
 
-    def backtrack(self, assignment, cells_left, mines_left, solutions):  # TODO
+    def backtrack(self, assignment, cells_left, mines_left, solutions):  # TODO einfach mit itertools.product()?
         if len(assignment) > cells_left:
             return
         elif sum(assignment) > mines_left:
@@ -208,19 +210,31 @@ class MinesweeperSolver:
         # after checking validity, reset values and domains
         for (x, y) in self.unassigned:
             self.values[(x, y)] = None
-            self.domains[(x, y)] = {None}
+            self.domains[(x, y)] = {0, 1}
         return all_valid
 
     def is_cell_consistent(self, x, y):
-        safe_consistent = all(self.values[(i, j)] is not None for i, j in self.neighbors[(x, y)]) and sum(
-            self.values[(i, j)] for i, j in self.neighbors[(x, y)]) == self.board[x][y].constant
-        mine_consistent = self.values[(x, y)] == 1 and self.domains[(x, y)] == {1} and self.board[x][y].constant
+        """
+        Cell can either be safe- or mine-consistent. Cell is safe-consistent if: every neighbor has a value set AND (
+        cell is not yet checked (can't know the constant) OR sum of values of neighbors is equals constant of this
+        cell).
+        Cell is mine_consistent if: value is set to 1 AND domain is {1}
+
+        :param x: x of cell
+        :param y: y of cell
+        :return: True, when either safe- or mine-consistent, False else
+        """
+        safe_consistent = all(self.values[(i, j)] is not None for i, j in self.neighbors[(x, y)]) and (
+                (x, y) not in self.checked or sum(
+            self.values[(i, j)] for i, j in self.neighbors[(x, y)]) == self.board[x][y].constant)
+        mine_consistent = self.values[(x, y)] == 1 and self.domains[(x, y)] == {1}
         return safe_consistent or mine_consistent
 
     def is_solver_consistent(self):
         """
         Checks if every cell, that is not marked as a mine, is consistent. Then checks that every value is set. Then
         checks if every domain has a size of 1. Then checks that the sum of self.values is equals to amount of mines
+
         :return: True, when everything is consistent, False else
         """
         return all(self.is_cell_consistent(x, y) for x, y in self.variables if self.values[(x, y)] != 1) and not any(
@@ -228,20 +242,49 @@ class MinesweeperSolver:
             len(self.domains[(x, y)]) == 1 for x, y in self.variables) and sum(
             self.values.values()) == self.game.mines
 
-    def solve(self):
-        print("Starting solve with AC3 and revise")
-        if self.ac3():  # ac3 is finished and game is over
-            print("Found solution")
-            return self.game.game_over
-        if self.is_solver_consistent():
-            print("Found solution")
-            self.game.game_over = True
-            self.game.result = "Won"
-            return True
+    def uncover_and_mark_remaining_cells(self, cells_left, mines_left):
+        self.unassigned = [(x, y) for x, y in self.variables if len(self.domains[(x, y)]) > 1]
+        if cells_left:
+            for x, y in self.unassigned:
+                if mines_left:
+                    self.domains[(x, y)] = {1}
+                    self.values[(x, y)] = 1
+                    self.game.flag(x, y)
+                else:
+                    self.cells_to_check.add((x, y))
+        self.uncover_cells()
 
+    def solve(self):
+        """
+        Main method to call on this solver to start solving process.
+
+        1. AC3 algorithm and revise
+        2a. game finished by minesweeper rules
+        2b. game finished by consistent state of solver
+        3a. Every mine is marked, can uncover the rest of the cells --> back to 1.
+        3b. find valid solutions by backtracking
+        4a. No solution found, uncovering random cell --> back to 1.
+        4b. Adding safe cells to uncover, which are 0 in every valid solution
+        4c. No safe cells found --> take first of valid solutions as assignment and try
+        5. back to 1.
+
+        :return: True, when finished and successful, False else
+        """
+        print("Starting solve with AC3 and revise")
         mines_left = self.game.mines - len(self.game.marked)
         cells_left = self.game.cols * self.game.rows - len(self.game.uncovered) - len(self.game.marked)
         print("Mines left: {}, Cells left: {}".format(str(mines_left), str(cells_left)))
+
+        if self.ac3() or self.is_solver_consistent():  # ac3 is finished and game is over or solver is consistent
+            print("Game over")
+            # for consistency of solver and more convincing GUI
+            self.uncover_and_mark_remaining_cells(cells_left, mines_left)
+            if self.is_solver_consistent():
+                self.game.game_over = True
+                self.game.result = "Won"
+            print("Game result: ", "Solved" if self.game.game_over else "Lost")
+            return self.game.game_over
+
         if mines_left == 0 and cells_left > 0:
             print("No more mines left, can uncover rest of cells")
             for x, y in self.variables:

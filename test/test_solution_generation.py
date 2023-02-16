@@ -6,12 +6,6 @@ from gpt.gpt_solver_ac3_7 import MinesweeperSolver
 from BasicPatternGenerator import BasicPatternGenerator
 
 
-def generate_solutions(valid, size):
-    solutions = [p for p in product([0, 1], repeat=size)]
-    solutions.remove(tuple(valid))
-    return solutions
-
-
 class TestMinesweeperSolver(TestCase):
     game = None
     solver = None
@@ -41,13 +35,8 @@ class TestMinesweeperSolver(TestCase):
         self.solver.values[(0, 2)] = None
         self.solver.values[(1, 2)] = None
         self.solver.values[(2, 2)] = None
-        self.solver.unassigned = [(x, y) for x, y in self.solver.variables if len(self.solver.domains[(x, y)]) > 1]
         valid = [0, 0, 1]  # valid solution
-        self.assertTrue(self.solver.is_solution_valid(valid))
-        # invalid solutions
-        solutions = generate_solutions(valid, len(valid))
-        for sol in solutions:
-            self.assertFalse(self.solver.is_solution_valid(sol))
+        self.generate_and_test_solutions(valid, len(valid))
 
     def test_valid_solution_corner_only_zeroes(self):
         self.generator.mine_in_corner()
@@ -64,13 +53,8 @@ class TestMinesweeperSolver(TestCase):
         self.solver.values[(1, 2)] = None
         self.solver.values[(1, 1)] = None
         self.solver.values[(2, 2)] = None
-        self.solver.unassigned = [(x, y) for x, y in self.solver.variables if len(self.solver.domains[(x, y)]) > 1]
         valid = [0, 0, 0, 1]  # valid solution
-        self.assertTrue(self.solver.is_solution_valid(valid))
-        # invalid solutions
-        solutions = generate_solutions(valid, len(valid))
-        for sol in solutions:
-            self.assertFalse(self.solver.is_solution_valid(sol))
+        self.generate_and_test_solutions(valid, len(valid))
 
     def test_valid_solution_center(self):
         self.generator.mine_in_center()
@@ -84,10 +68,68 @@ class TestMinesweeperSolver(TestCase):
         self.solver.values[(0, 1)] = None
         self.solver.values[(1, 1)] = None
         self.solver.values[(2, 1)] = None
-        self.solver.unassigned = [(x, y) for x, y in self.solver.variables if len(self.solver.domains[(x, y)]) > 1]
         valid = [0, 1, 0]  # valid solution
+        self.generate_and_test_solutions(valid, len(valid))
+
+    def test_valid_solution_1_2_2(self):
+        self.generator.mines_1_2_2()
+        self.solver.solve()
+        # forget 1s and mines
+        self.solver.checked.remove((0, 1))
+        self.solver.domains[(0, 1)] = {0, 1}
+        self.solver.domains[(0, 2)] = {0, 1}
+        self.solver.domains[(1, 2)] = {0, 1}
+        self.solver.domains[(2, 2)] = {0, 1}
+        self.solver.values[(0, 1)] = None
+        self.solver.values[(0, 2)] = None
+        self.solver.values[(1, 2)] = None
+        self.solver.values[(2, 2)] = None
+        valid = [0, 0, 1, 1]  # valid solution
+        self.generate_and_test_solutions(valid, len(valid))
+
+    def test_multiple_valid_solutions_1_2_2_(self):
+        self.generator.mines_1_2_2()
+        # only uncover 2s
+        self.solver.cells_to_check.remove((0, 0))
+        self.solver.cells_to_check.remove((1, 0))
+        self.solver.cells_to_check.remove((2, 0))
+        self.solver.cells_to_check.add((1, 1))
+        self.solver.cells_to_check.add((2, 1))
+        self.solver.ac3()
+        self.solver.unassigned = [(x, y) for x, y in self.solver.variables if len(self.solver.domains[(x, y)]) > 1]
+        valids = [[0, 0, 0, 1, 1, 0, 0], [0, 0, 0, 1, 0, 1, 0], [0, 0, 0, 1, 0, 0, 1], [0, 0, 0, 0, 1, 1, 0],
+                  [0, 0, 0, 0, 1, 0, 1], [0, 0, 0, 0, 0, 1, 1]]  # valid solutions
+        for valid in valids:
+            self.assertTrue(self.solver.is_solution_valid(valid))
+
+        invalids = [p for p in product([0, 1], repeat=7)]
+        for invalid in invalids:
+            if list(invalid) not in valids:
+                self.assertFalse(self.solver.is_solution_valid(invalid))
+
+    def test_multiple_valid_solutions_mines_4(self):
+        self.generator.mines_4()
+        self.solver.cells_to_check.remove((0, 0))
+        self.solver.cells_to_check.remove((2, 0))
+        self.solver.cells_to_check.remove((1, 1))
+        self.solver.cells_to_check.remove((0, 2))
+        self.solver.cells_to_check.add((1, 1))
+        self.solver.uncover_cells()
+        self.solver.unassigned = [(x, y) for x, y in self.solver.variables if len(self.solver.domains[(x, y)]) > 1]
+        solutions = [p for p in product([0, 1], repeat=8)]
+        valids = [sol for sol in solutions if sum(sol) == 4]
+        for valid in valids:
+            self.assertTrue(self.solver.is_solution_valid(valid))
+        invalids = [sol for sol in solutions if sum(sol) != 4]
+        for invalid in invalids:
+            self.assertFalse(self.solver.is_solution_valid(invalid))
+
+    # ----- HELPER -----
+
+    def generate_and_test_solutions(self, valid, size):
+        self.solver.unassigned = [(x, y) for x, y in self.solver.variables if len(self.solver.domains[(x, y)]) > 1]
         self.assertTrue(self.solver.is_solution_valid(valid))
-        # invalid solutions
-        solutions = generate_solutions(valid, len(valid))
+        solutions = [p for p in product([0, 1], repeat=size)]
+        solutions.remove(tuple(valid))
         for sol in solutions:
             self.assertFalse(self.solver.is_solution_valid(sol))

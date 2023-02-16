@@ -63,6 +63,42 @@ class BasicPatternGenerator:
 
         self.game.print()
 
+    def mines_corner_3(self):
+        """
+        | ?| ?| ?|
+        | ?| ?| ?|
+        | ?| ?| 3|
+        """
+        self.game.mines = 3
+        for x in range(self.game.cols):
+            for y in range(self.game.rows):
+                if x == 0 or y == 0:
+                    self.game.board[x][y] = Cell(x, y, 2)
+                else:
+                    self.game.board[x][y] = Cell(x, y, 9)
+        self.game.board[0][0] = Cell(0, 0, 1)
+        self.game.board[2][2] = Cell(2, 2, 3)
+        self.solver.cells_to_check.remove((0, 0))
+        self.solver.cells_to_check.add((2, 2))
+
+    def mines_edge_5(self):
+        """
+        | ?| ?| ?|
+        | ?| ?| ?|
+        | ?| 5| ?|
+        """
+        self.game.mines = 5
+        for x in range(self.game.cols):
+            for y in range(self.game.rows):
+                if y == 0:
+                    self.game.board[x][y] = Cell(x, y, 2)
+                else:
+                    self.game.board[x][y] = Cell(x, y, 9)
+        self.game.board[1][0] = Cell(1, 0, 3)
+        self.game.board[1][2] = Cell(1, 2, 5)
+        self.solver.cells_to_check.remove((0, 0))
+        self.solver.cells_to_check.add((1, 2))
+
     def mines_4(self):
         """
         | 2| ?| 2|
