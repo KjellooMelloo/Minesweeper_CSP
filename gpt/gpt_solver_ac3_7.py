@@ -15,6 +15,7 @@ class MinesweeperSolver:
         self.cells_to_check = set()
         self.cells_to_check.add((start_x, start_y))
         self.checked = set()
+        self.cache = {}
 
         for x, y in self.variables:
             self.neighbors[(x, y)] = self.game.get_neighbors(x, y)
@@ -151,8 +152,10 @@ class MinesweeperSolver:
 
     def find_solutions(self):
         print("Generating solutions")
-        self.unassigned = [(x, y) for x, y in self.variables if len(self.domains[(x, y)]) > 1]
-        solutions = self.backtrack([], len(self.unassigned), self.game.mines - len(self.game.marked), [])
+        # heuristic to reduce search space: only take unassigned next to assigned/ safe ones and max length of 10
+        self.unassigned = [(x, y) for x, y in self.variables if len(self.domains[(x, y)]) > 1 and any(
+            self.values[(i, j)] == 0 for i, j in self.neighbors[(x, y)])][:10]
+        solutions = self.backtrack(self.game.mines - len(self.game.marked))
 
         if not solutions:  # no solution found -> pick a random cell to uncover
             rand_x, rand_y = self.unassigned[random.randint(0, len(self.unassigned) - 1)]
@@ -182,24 +185,27 @@ class MinesweeperSolver:
 
         return self.solve()
 
-    def backtrack(self, assignment, cells_left, mines_left, solutions):  # TODO einfach mit itertools.product()?
-        if len(assignment) > cells_left:
-            return
-        elif sum(assignment) > mines_left:
-            return
-        else:
-            for choice in [0, 1]:  # domain
-                assignment.append(choice)
-                if sum(assignment) == mines_left and len(assignment) == cells_left:
-                    valid = self.is_solution_valid(assignment)
-                    if valid:
-                        c = assignment.copy()
-                        solutions.append(c)
-                self.backtrack(assignment, cells_left, mines_left, solutions)
-                assignment.pop()
+    def backtrack(self, mines_left): # TODO
+        solutions = []
+        self.backtrack_helper([], mines_left, solutions)
         return solutions
 
+    def backtrack_helper(self, current_solution, mines_left, solutions):
+        if mines_left == 0:
+            if self.is_solution_valid(current_solution) and len(current_solution) == len(self.unassigned):
+                solutions.append(current_solution)
+        elif len(current_solution) < len(self.unassigned):
+            # try assigning a 0 or 1 to the next unassigned cell
+            self.backtrack_helper(current_solution + [0], mines_left, solutions)
+            self.backtrack_helper(current_solution + [1], mines_left - 1, solutions)
+            # remove the current solution from the cache, in case it's no longer valid
+            self.cache.pop(tuple(current_solution), None)
+
     def is_solution_valid(self, assignment):
+        key = tuple(assignment)
+        if key in self.cache:
+            return self.cache[key]
+
         all_valid = True
         for (x, y), value in zip(self.unassigned, assignment):  # set every value and domains
             self.values[(x, y)] = value
@@ -211,6 +217,7 @@ class MinesweeperSolver:
         for (x, y) in self.unassigned:
             self.values[(x, y)] = None
             self.domains[(x, y)] = {0, 1}
+        self.cache[key] = all_valid  # cache the result
         return all_valid
 
     def is_cell_consistent(self, x, y):
@@ -284,6 +291,10 @@ class MinesweeperSolver:
                 self.game.result = "Won"
             print("Game result: ", "Solved" if self.game.game_over else "Lost")
             return self.game.game_over
+
+        mines_left = self.game.mines - len(self.game.marked)
+        cells_left = self.game.cols * self.game.rows - len(self.game.uncovered) - len(self.game.marked)
+        print("Mines left: {}, Cells left: {}".format(str(mines_left), str(cells_left)))
 
         if mines_left == 0 and cells_left > 0:
             print("No more mines left, can uncover rest of cells")

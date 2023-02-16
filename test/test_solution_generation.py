@@ -70,6 +70,7 @@ class TestMinesweeperSolver(TestCase):
         self.solver.values[(2, 1)] = None
         valid = [0, 1, 0]  # valid solution
         self.generate_and_test_solutions(valid, len(valid))
+        self.assertTrue(self.solver.backtrack(1) == valid)
 
     def test_valid_solution_1_2_2(self):
         self.generator.mines_1_2_2()
