@@ -9,9 +9,9 @@ from gpt.gpt_solver_ac3_7 import MinesweeperSolver
 
 # adapted from: https://cs50.harvard.edu/ai/2020/projects/1/minesweeper/
 
-HEIGHT = 9
-WIDTH = 9
-MINES = 10
+HEIGHT = 5
+WIDTH = 5
+MINES = 5
 
 # Colors
 BLACK = (0, 0, 0)
@@ -91,10 +91,10 @@ while True:
                 screen.blit(text, textRect)
 
             # Add a mine, flag, or number if needed
-            if result == "Lost" and game.is_mine(i, j):
-                screen.blit(mine, rect)
-            elif (i, j) in flags:
+            if (i, j) in flags:
                 screen.blit(flag, rect)
+            elif result == "Lost" and game.is_mine(i, j):
+                screen.blit(mine, rect)
             elif (i, j) in revealed:
                 val = smallFont.render(
                     str(game.board[i][j].constant),
@@ -164,7 +164,8 @@ while True:
         elif resetButton.collidepoint(mouse):
             game = Minesweeper(rows=HEIGHT, cols=WIDTH, mines=MINES)
             # ai = MinesweeperSolver(game)
-            ai = MinesweeperCSP(game)
+            # ai = MinesweeperCSP(game)
+            ai = MinesweeperSolver(game)
             revealed = set()
             flags = set()
             game_over = game.game_over

@@ -41,6 +41,36 @@ class BasicPatternGenerator:
         self.solver.cells_to_check.add((1, 0))
         self.solver.cells_to_check.add((0, 1))
 
+    def pattern_corner_1(self):  # for solution validity
+        """
+        | 1| ?| ?|
+        | ?| ?| ?|
+        | ?| ?| ?|
+        """
+        for x in range(self.game.cols):
+            for y in range(self.game.rows):
+                if y != 2:
+                    self.game.board[x][y] = Cell(x, y, 1)
+                else:
+                    self.game.board[x][y] = Cell(x, y, 0)
+        self.game.board[1][0] = Cell(1, 0, 9)
+
+    def pattern_corner_1_with_2_mines(self):  # for solution validity
+        """
+        | 1| ?| ?|
+        | ?| ?| ?|
+        | ?| ?| ?|
+        """
+        self.game.mines = 3
+        for x in range(self.game.cols):
+            for y in range(self.game.rows):
+                if x == 0 or y == 0 or x == 2 or y == 2:
+                    self.game.board[x][y] = Cell(x, y, 1)
+                else:
+                    self.game.board[x][y] = Cell(x, y, 2)
+        self.game.board[1][0] = Cell(1, 0, 9)
+        self.game.board[1][2] = Cell(1, 2, 9)
+
     def mines_1_2_2(self):
         """
         | 0| 0| 0|

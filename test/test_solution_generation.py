@@ -23,6 +23,30 @@ class TestMinesweeperSolver(TestCase):
         cls.solver = None
         cls.generator = None
 
+    def test_pattern_corner_1(self):
+        self.generator.pattern_corner_1()
+        self.solver.uncover_cells()
+        self.solver.unassigned = [(x, y) for x, y in self.solver.variables if
+                                  len(self.solver.domains[(x, y)]) > 1 and any(
+                                      self.solver.values[(i, j)] == 0 for i, j in self.solver.neighbors[(x, y)])][:10]
+        valids = [[0, 0, 1], [0, 1, 0], [1, 0, 0]]
+        backtrack_solutions = self.solver.backtrack(1)
+        for valid in valids:
+            self.assertTrue(self.solver.is_solution_valid(valid))
+            self.assertTrue(valid in backtrack_solutions)
+
+    def test_pattern_corner_1_with_2_mines(self):
+        self.generator.pattern_corner_1_with_2_mines()
+        self.solver.uncover_cells()
+        self.solver.unassigned = [(x, y) for x, y in self.solver.variables if
+                                  len(self.solver.domains[(x, y)]) > 1 and any(
+                                      self.solver.values[(i, j)] == 0 for i, j in self.solver.neighbors[(x, y)])][:10]
+        valids = [[0, 0, 1], [0, 1, 0], [1, 0, 0]]
+        backtrack_solutions = self.solver.backtrack(2)
+        for valid in valids:
+            self.assertTrue(self.solver.is_solution_valid(valid))
+            self.assertTrue(valid in backtrack_solutions)
+
     def test_valid_solution_corner(self):
         self.generator.mine_in_corner()
         self.solver.solve()
@@ -104,7 +128,9 @@ class TestMinesweeperSolver(TestCase):
         self.solver.cells_to_check.add((1, 1))
         self.solver.cells_to_check.add((2, 1))
         self.solver.ac3()
-        self.solver.unassigned = [(x, y) for x, y in self.solver.variables if len(self.solver.domains[(x, y)]) > 1]
+        self.solver.unassigned = [(x, y) for x, y in self.solver.variables if
+                                  len(self.solver.domains[(x, y)]) > 1 and any(
+                                      self.solver.values[(i, j)] == 0 for i, j in self.solver.neighbors[(x, y)])][:10]
         valids = [[0, 0, 0, 1, 1, 0, 0], [0, 0, 0, 1, 0, 1, 0], [0, 0, 0, 1, 0, 0, 1], [0, 0, 0, 0, 1, 1, 0],
                   [0, 0, 0, 0, 1, 0, 1], [0, 0, 0, 0, 0, 1, 1]]  # valid solutions
         backtrack_solutions = self.solver.backtrack(2)
@@ -128,7 +154,9 @@ class TestMinesweeperSolver(TestCase):
         self.solver.cells_to_check.remove((0, 2))
         self.solver.cells_to_check.add((1, 1))
         self.solver.uncover_cells()
-        self.solver.unassigned = [(x, y) for x, y in self.solver.variables if len(self.solver.domains[(x, y)]) > 1]
+        self.solver.unassigned = [(x, y) for x, y in self.solver.variables if
+                                  len(self.solver.domains[(x, y)]) > 1 and any(
+                                      self.solver.values[(i, j)] == 0 for i, j in self.solver.neighbors[(x, y)])][:10]
         solutions = [p for p in product([0, 1], repeat=8)]
         backtrack_solutions = self.solver.backtrack(4)
         valids = [sol for sol in solutions if sum(sol) == 4]
@@ -146,7 +174,9 @@ class TestMinesweeperSolver(TestCase):
     # ----- HELPER -----
 
     def generate_and_test_solutions(self, valid, size):
-        self.solver.unassigned = [(x, y) for x, y in self.solver.variables if len(self.solver.domains[(x, y)]) > 1]
+        self.solver.unassigned = [(x, y) for x, y in self.solver.variables if
+                                  len(self.solver.domains[(x, y)]) > 1 and any(
+                                      self.solver.values[(i, j)] == 0 for i, j in self.solver.neighbors[(x, y)])][:10]
         self.assertTrue(self.solver.is_solution_valid(valid))
         solutions = [p for p in product([0, 1], repeat=size)]
         solutions.remove(tuple(valid))
