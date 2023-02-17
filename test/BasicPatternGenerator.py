@@ -179,7 +179,9 @@ class BasicPatternGenerator:
         for x in range(self.game.cols):
             for y in range(self.game.rows):
                 self.game.board[x][y] = Cell(x, y, y)
+        self.game.board[0][2] = Cell(1, 2, 1)
         self.game.board[1][2] = Cell(1, 2, 9)
+        self.game.board[2][2] = Cell(1, 2, 1)
         self.game.print()
 
     def pattern_1_2(self):

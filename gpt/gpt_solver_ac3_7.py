@@ -164,6 +164,19 @@ class MinesweeperSolver:
             return self.solve()
 
         print("Solutions found: ", len(solutions))
+        if len(solutions) == 1:
+            print("One solution found. Assigning values")
+            sol = solutions[0]
+            for i in range(len(sol)):
+                x, y = self.unassigned[i]
+                if sol[i] == 0:
+                    self.cells_to_check.add((x, y))
+                else:
+                    self.domains[(x, y)] = {1}
+                    self.values[(x, y)] = 1
+                    self.game.flag(x, y)
+            return self.solve()
+
         # sum of values for every solution
         sum_sol = [sum(row[i] for row in solutions) for i in range(len(solutions[0]))]
         any_safe = False
@@ -185,21 +198,26 @@ class MinesweeperSolver:
 
         return self.solve()
 
-    def backtrack(self, mines_left): # TODO
-        solutions = []
-        self.backtrack_helper([], mines_left, solutions)
-        return solutions
+    def backtrack(self, mines_left):
+        return self.backtrack_helper([], mines_left, [])
 
-    def backtrack_helper(self, current_solution, mines_left, solutions):
-        if mines_left == 0:
-            if self.is_solution_valid(current_solution) and len(current_solution) == len(self.unassigned):
-                solutions.append(current_solution)
-        elif len(current_solution) < len(self.unassigned):
-            # try assigning a 0 or 1 to the next unassigned cell
-            self.backtrack_helper(current_solution + [0], mines_left, solutions)
-            self.backtrack_helper(current_solution + [1], mines_left - 1, solutions)
-            # remove the current solution from the cache, in case it's no longer valid
-            self.cache.pop(tuple(current_solution), None)
+    def backtrack_helper(self, assignment, mines_left, solutions):
+        if len(assignment) > len(self.unassigned):
+            return
+        elif sum(assignment) > mines_left:
+            return
+        else:
+            for choice in [0, 1]:
+                assignment.append(choice)
+                if sum(assignment) == mines_left and len(assignment) == len(self.unassigned):
+                    if self.is_solution_valid(assignment):
+                        # only keep valid solutions
+                        c = assignment.copy()
+                        solutions.append(c)
+                self.backtrack_helper(assignment, mines_left, solutions)
+                assignment.pop()
+                self.cache.pop(tuple(assignment), None)
+            return solutions
 
     def is_solution_valid(self, assignment):
         key = tuple(assignment)

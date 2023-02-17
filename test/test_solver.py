@@ -97,6 +97,28 @@ class TestMinesweeperSolver(TestCase):
         self.assertTrue(self.solver.values[(2, 1)] == 1)  # mine value correct
         self.assertTrue(self.solver.values[(2, 2)] == 1)  # mine value correct
 
+    def test_pattern_b1(self):
+        self.generator.pattern_b1()
+        self.preconditions()
+        self.assertTrue(self.solver.solve())
+        self.postconditions()
+        self.assertTrue(len(self.solver.constraints) == 0)
+        self.assertTrue(self.solver.domains[(0, 2)] == {1})  # domain correct
+        self.assertTrue(self.solver.domains[(1, 2)] == {1})  # domain correct
+        self.assertTrue(self.solver.domains[(2, 2)] == {1})  # domain correct
+        self.assertTrue(self.solver.values[(0, 2)] == 1)  # mine value correct
+        self.assertTrue(self.solver.values[(1, 2)] == 1)  # mine value correct
+        self.assertTrue(self.solver.values[(2, 2)] == 1)  # mine value correct
+
+    def test_pattern_1_1(self):
+        self.generator.pattern_1_1()
+        self.preconditions()
+        self.assertTrue(self.solver.solve())
+        self.postconditions()
+        self.assertTrue(len(self.solver.constraints) == 0)
+        self.assertTrue(self.solver.domains[(1, 2)] == {1})  # domain correct
+        self.assertTrue(self.solver.values[(1, 2)] == 1)  # mine value correct
+
     # ----- HELPER ----- #
 
     def preconditions(self):
