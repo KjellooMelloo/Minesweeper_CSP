@@ -2,7 +2,7 @@ from unittest import TestCase
 from itertools import product
 
 from minesweeper import Minesweeper
-from gpt.gpt_solver_ac3_7 import MinesweeperSolver
+from minesweeper_solver import MinesweeperSolver
 from BasicPatternGenerator import BasicPatternGenerator
 
 
