@@ -1,3 +1,5 @@
+import random
+
 import pygame
 import sys
 import time
@@ -7,9 +9,9 @@ from minesweeper_solver import MinesweeperSolver
 
 # adapted from: https://cs50.harvard.edu/ai/2020/projects/1/minesweeper/
 
-HEIGHT = 5
-WIDTH = 5
-MINES = 5
+HEIGHT = 8
+WIDTH = 8
+MINES = 10
 
 # Colors
 BLACK = (0, 0, 0)
@@ -42,7 +44,10 @@ mine = pygame.transform.scale(mine, (cell_size, cell_size))
 
 # Create game and AI agent
 game = Minesweeper(rows=HEIGHT, cols=WIDTH, mines=MINES)
-ai = MinesweeperSolver(game)
+rand_x = random.randint(0, WIDTH - 1)
+rand_y = random.randint(0, HEIGHT - 1)
+print("Starting point: ", rand_x, rand_y)
+ai = MinesweeperSolver(game, starting_point=(rand_x, rand_y))
 
 # Keep track of revealed cells, flagged cells, and if a mine was hit
 revealed = set()

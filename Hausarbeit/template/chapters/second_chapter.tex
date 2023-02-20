@@ -1,0 +1,43 @@
+% !TEX root = ../termpaper.tex
+% @author Kjell May
+%
+
+\section{Algorithmus}
+
+\subsection*{Definition}
+Um ein Constraint Satisfaction Problem formal beschreiben zu können, müssen eine Menge von Variablen, die Menge 
+ihrer Wertebereiche und die Definition der Constraints festgelegt werden. Für Minesweeper habe ich dies wie folgt definiert:
+Für ein Spielfeld mit $n\in \mathbb{N}$ Spalten und $m\in\mathbb{N}$ Zeilen sind
+die Variablen $X=\{(x, y) | 2\le x\le n  \text{ und }  2\le y\le m\}$ und ihre Wertebereiche $D=\{0, 1\}$, wobei 1
+für eine Mine steht und 0 für ein sicheres Feld.
+Die Constraints müssen umfangreicher definiert werden. Für jede Variable $(x, y)$ gibt es den Constraint auf ihm und alle seiner 
+Nachbarn, dass der Wert auf dem Feld der Variablen, desweiteren als Konstante $k(x, y) \text{ mit } k\in\mathbb{N}$ 
+benannt, gleich der Summe aller Werte der Nachbarsvariablen ist. Formal definiert wäre dies
+$C=\{C(x, y) | k(x, y) = \sum_{\substack{0\le a\le n-1\\0<b<m-1}}{(a, b)} \text{ mit } (a, b)\in N_G((x, y))\}$.
+Binäre Constraints zwischen zwei benachbarten Variablen ergeben sich dann dadurch, dass eine Variable keinen Wert annehmen kann, 
+welcher den Constraint des Nachbars verletzen würde. Diese sind Teilschritte dahin, den eigentlichen Constraint erfüllen zu können.
+Der Constraint-Graph ergibt sich für dieses Spiel trivial als Graph des Spielfelds.
+
+\subsection*{Besonderheiten Minesweeper}
+Eine der Besonderheiten, um das Spiel Minesweeper zu lösen zu können, ist das Aufdecken der Felder, womit die Konstante auf diesem Feld
+bekannt wird und daraus dynamisch Constraints definiert werden können. Daraus ergibt sich, dass der Algorithmus immer wiederholt wird,
+wenn neue Informationen durch Aufdecken erlangt werden. Mit dieser Art der unvollständigen Information über das Spielfeld unterscheidet es
+sich deutlich von anderen CSPs wie Sudoku, das Vier-Farben-Problem oder das Damenproblem.
+Eine weitere Herausforderung ist, dass nicht jedes Spiel mit Sicherheit lösbar ist. Es gibt Fälle, in denen nur mit 50\% Wahrscheinlichkeit
+gesagt werden kann, wo sich eine Mine befindet. Beispiel siehe Abb. A
+
+\subsection*{Ablauf}
+\subparagraph*{1. Startpunkt und Aufdecken}
+
+Die erste Herausforderung zum Lösen dieses Spiels ist die Wahl, welches Feld zuerst aufgedeckt wird, da alle Felder zu Beginn verdeckt sind.
+In der Windows-Version von Minesweeper ist sichergestellt, dass der erste Klick keine Mine aufdecken kann (Quelle X). Dies habe ich für 
+meine Implementierung des Spiels auch übernommen, aus einfachen Komfortgründen. Ist diese Voraussetzung gegeben, kann zu Beginn also einfach
+ein zufälliges Feld gewählt werden.
+
+Jedes Mal, wenn ein Feld aufgedeckt wird und es keine Mine ist, kann der Wertebereich der Variable für
+das Feld auf $D=\{0\}$ reduziert, damit auch der Wert auf 0 gesetzt und die binären Constraints dieser Variable zu allen Nachbarn in beide
+Richtungen definiert werden. Als Heuristik habe ich hier zusätzlich eingebaut, dass falls die aufgedeckte Konstante eine 0 ist, direkt
+alle Nachbarn aufgedeckt werden können (rekursiv für weitere Nullen). Damit werden die trivialen Fälle der 0 direkt abgehandelt, womit
+die zugehörigen Variablen bereits konsistent sind.
+
+Im Laufe des Algorithmus ergeben sich weitere sichere Felder, die wie oben beschrieben wieder aufgedeckt werden können.
