@@ -1,7 +1,7 @@
 % !TEX root = ../termpaper.tex
 % @author Kjell May
 %
-
+\graphicspath{{chapters/images/}}
 \section{Algorithmus}
 
 \subsection*{Definition}
@@ -27,7 +27,7 @@ Eine weitere Herausforderung ist, dass nicht jedes Spiel mit Sicherheit lösbar 
 gesagt werden kann, wo sich eine Mine befindet. Beispiel siehe Abb. A
 
 \subsection*{Ablauf}
-\subparagraph*{1. Startpunkt und Aufdecken}
+\subparagraph{1. Startpunkt und Aufdecken}
 
 Die erste Herausforderung zum Lösen dieses Spiels ist die Wahl, welches Feld zuerst aufgedeckt wird, da alle Felder zu Beginn verdeckt sind.
 In der Windows-Version von Minesweeper ist sichergestellt, dass der erste Klick keine Mine aufdecken kann (Quelle X). Dies habe ich für 
@@ -41,3 +41,68 @@ alle Nachbarn aufgedeckt werden können (rekursiv für weitere Nullen). Damit we
 die zugehörigen Variablen bereits konsistent sind.
 
 Im Laufe des Algorithmus ergeben sich weitere sichere Felder, die wie oben beschrieben wieder aufgedeckt werden können.
+
+\subparagraph{2. AC-3 und Revise}
+
+Der Kern der Algorithmen für CSPs stellt der mittlerweile weit verbreitete Algorithmus AC-3 mit Revise dar, wie er von Alan Mackworth in 
+Quelle [y] beschrieben wird. Als Pseudocode beschrieben sind sie wie in den folgenden Abbildungen [x] und [y]:
+\begin{figure}
+    \centering
+    \begin{subcaptionblock}{.4\textwidth}
+    \centering
+    \includegraphics{AC3-AlanMackworth}
+    \caption{AC-3 Algorithmus}\label{cat}
+    \end{subcaptionblock}%
+    \begin{subcaptionblock}{.4\textwidth}
+    \centering
+    \includegraphics{Revise_AlanMackworth}
+    \caption{Revise Algorithmus}\label{elephant}
+    \end{subcaptionblock}%
+    \caption{AC-3 + Revise Pseudocode}\label{animals}
+\end{figure}
+
+Der AC-3 Algorithmus beginnt mit Node Consistency ($NC(i)$). Diese ist bereits durch das Aufdecken gegeben und es können sich direkt mit den
+binären Constraints beschäftigt werden. In meiner Implementierung beinhaltet die $Q$ die erzeugten binären Constraints. Für jede Kante wird
+dann \textit{Revise} ausgeführt. Gibt es in \textit{Revise} eine Änderung, kann der übrig gebliebene Wert direkt gesetzt werden da der 
+Wertebereich nur aus 0 und 1 besteht. Haben wir hier eine Mine gefunden, kann diese auch für das Spiel direkt markiert (mit einer Flagge)
+werden. Alle Nachbarn von $k$ werden dann in $Q$ hinzugefügt. Desweiteren findet hier eine Überprüfung statt, ob die Variable $(xk, yk)$ bereits
+konsistent ist (Referenz Konsistenz). Ist dies der Fall, sind alle benachbarten Felder mit dem Wert 0 sicher und können aufgedeckt werden.
+Ist $Q$ leer, wird erst geschaut, ob das Spiel vorbei ist, nämlich genau dann wenn eine Mine oder alle Felder, die keine Mine sind, aufgedeckt
+wurden. In dem Fall sind wir bereits fertig und können beenden. Ansonsten wird geschaut, ob sichere Felder zum Aufdecken hinzugefügt wurden
+und von vorne begonnen. Sind wir hier durch, aber nicht fertig geht es mit 3. weiter.
+
+Der Revise-Algorithmus schaut sich die Kanten/ binären Constraints an und prüft auf mögliche Verletzung der Constraints. Es wird jeder Wert
+von $i$ der Kante $(i,j)$ bzw. $((xi, yi), (xj, yj))$ probeweise gesetzt und geschaut, ob dies dazu führt, dass $j$ keinen Wert annehmen kann,
+der diesen Constraint erfüllen könnte. In dem Fall wird der getestete Wert für $i$ gelöscht und $DELETE$ auf \textit{false} gesetzt. Der Test
+auf Verletzung dieses Constraints wird wie folgt durchgeführt: Für jeden Wert im Wertebereich von $j$ wird geschaut, ob dies seinen Constraint
+zu allen Nachbarn verletzt. Dies kann der Fall sein, wenn für einen Nachbarn zu viele oder zu wenig Minen existieren würden, also die Summe
+der Werte aller Nachbarn größer der Konstante ist oder die Anzahl der unbestimmten Nachbarn nicht mehr die erforderliche Anzahl an Minen 
+erreichen könnten. 
+Für \textit{Revise} muss beachtet werden, dass wir die Konstante von $j$ bei $(i,j)$ wissen müssen, das Feld also aufgedeckt sein muss. Ist
+das nicht der Fall, wird diese Kante einfach übersprungen.
+
+Nach 2. und vor 3. kommt in meinem Algorithmus noch ein Zwischenschritt. Da immer wieder zu AC-3 zurückgekehrt wird, kann es sein, dass bereits
+alle Minen gefunden wurden. Tritt der Fall ein, können die restlichen Felder einfach aufgedeckt und der \textit{Solver} vollständig
+konsistent gemacht werden. Dann ist der Algorithmus ebenfalls abgeschlossen. Ansonsten zu 3.
+
+\subparagraph{3. Backtracking}
+
+Ist keine Lösung durch AC-3 gefunden worden, kommt Backtracking zum Einsatz, wie er auch in Quelle[y] beschrieben wird. Hierbei geht es darum,
+für alle nicht belegten Variablen alle möglichen Zuweisungen zu generieren, testen und gültige zu sammeln. Schon bei kleinen Wertebereichen
+führt dies zu einer hohen Komplexität. Im unserem Fall mit einem Wertebereich der Größe 2, liegt die Komplexität bei $\mathcal{O}(2^n)$.
+Bei einem Minesweeper-Spielfeld für die Schwierigkeit \textit{Beginner} (8x8 mit 10 Minen) nimmt die Komplexität häufig ungewollte Ausmaße an.
+Um dem entgegenzuwirken, wurden folgende Maßnahmen getroffen:
+\begin{enumerate}
+    \item Um nicht alle Möglichkeiten zu generieren und dann zu testen, wird vorzeitig abgebrochen, falls eine Zuweisung nicht gültig sein
+    kann. Dies tritt beispielsweise ein, wenn die Summe der Werte in der Zuweisung größer als die Anzahl der übrigen Minen ist. Umgesetzt wird
+    dies rekursiv aus Effizienz- und Lesbarkeitsgründen.
+    \item Da viele Berechnungen durchgeführt werden, bei Tests auf Gültigkeit, wird \textit{Memoization} eingesetzt, also eine Art Cache eingeführt,
+    für bereits berechnete Lösungen. 
+    \item Um die Komplexität weiter zu reduzieren, werden außerdem Heuristiken festgelegt und genutzt. Da es regelmäßig vorkommt, dass ein
+    Großteil der unbelegten Variablen keine aufgedeckten Nachbarn haben und damit wenig über die Gültigkeit einer Zuweisung dieser Variablen
+    gesagt werden kann, werden diese exkludiert. In die Menge der Variablen, die für Backtracking angeschaut werden, kommen also nur solche,
+    welche mind. einen Nachbar besitzen, der aufgedeckt ist. Desweiteren werden davon nur maximal 10 Variablen genommen, um die Komplexität
+    auf $\mathcal{O}(2^{10})$ zu begrenzen.
+\end{enumerate}
+
+Wie werden Zuweisungen nun auf Gültigkeit geprüft?

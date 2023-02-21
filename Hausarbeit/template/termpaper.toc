@@ -1,6 +1,9 @@
 \babel@toc {ngerman}{}\relax 
 \contentsline {section}{\numberline {1}Einleitung}{1}{section.1}%
 \contentsline {section}{\numberline {2}Algorithmus}{1}{section.2}%
-\contentsline {section}{\nonumberline Literatur}{3}{section*.7}%
-\contentsline {section}{Selbstständigkeitserklärung}{4}{section*.7}%
+\contentsline {subparagraph}{\nonumberline 1. Startpunkt und Aufdecken}{2}{subparagraph*.6}%
+\contentsline {subparagraph}{\nonumberline 2. AC-3 und Revise}{3}{subparagraph*.8}%
+\contentsline {subparagraph}{\nonumberline 3. Backtracking}{4}{subparagraph*.11}%
+\contentsline {section}{\nonumberline Literatur}{5}{section*.13}%
+\contentsline {section}{Selbstständigkeitserklärung}{6}{section*.13}%
 \providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 
