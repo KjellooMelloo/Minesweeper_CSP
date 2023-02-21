@@ -4,7 +4,9 @@
 \graphicspath{{chapters/images/}}
 \section{Algorithmus}
 
-\subsection*{Definition}
+Der gesamte Quellcode zu dem hier beschriebenen Algorithmus befindet sich unter \url{https://github.com/KjellooMelloo/Minesweeper_CSP}
+
+\subsection{Definition}
 Um ein Constraint Satisfaction Problem formal beschreiben zu können, müssen eine Menge von Variablen, die Menge 
 ihrer Wertebereiche und die Definition der Constraints festgelegt werden. Für Minesweeper habe ich dies wie folgt definiert:
 Für ein Spielfeld mit $n\in \mathbb{N}$ Spalten und $m\in\mathbb{N}$ Zeilen sind
@@ -18,7 +20,7 @@ Binäre Constraints zwischen zwei benachbarten Variablen ergeben sich dann dadur
 welcher den Constraint des Nachbars verletzen würde. Diese sind Teilschritte dahin, den eigentlichen Constraint erfüllen zu können.
 Der Constraint-Graph ergibt sich für dieses Spiel trivial als Graph des Spielfelds.
 
-\subsection*{Besonderheiten Minesweeper}
+\subsection{Besonderheiten Minesweeper}
 Eine der Besonderheiten, um das Spiel Minesweeper zu lösen zu können, ist das Aufdecken der Felder, womit die Konstante auf diesem Feld
 bekannt wird und daraus dynamisch Constraints definiert werden können. Daraus ergibt sich, dass der Algorithmus immer wiederholt wird,
 wenn neue Informationen durch Aufdecken erlangt werden. Mit dieser Art der unvollständigen Information über das Spielfeld unterscheidet es
@@ -26,8 +28,8 @@ sich deutlich von anderen CSPs wie Sudoku, das Vier-Farben-Problem oder das Dame
 Eine weitere Herausforderung ist, dass nicht jedes Spiel mit Sicherheit lösbar ist. Es gibt Fälle, in denen nur mit 50\% Wahrscheinlichkeit
 gesagt werden kann, wo sich eine Mine befindet. Beispiel siehe Abb. A
 
-\subsection*{Ablauf}
-\subparagraph{1. Startpunkt und Aufdecken}
+\subsection{Ablauf}
+\subsubsection{Startpunkt und Aufdecken}
 
 Die erste Herausforderung zum Lösen dieses Spiels ist die Wahl, welches Feld zuerst aufgedeckt wird, da alle Felder zu Beginn verdeckt sind.
 In der Windows-Version von Minesweeper ist sichergestellt, dass der erste Klick keine Mine aufdecken kann (Quelle X). Dies habe ich für 
@@ -42,23 +44,20 @@ die zugehörigen Variablen bereits konsistent sind.
 
 Im Laufe des Algorithmus ergeben sich weitere sichere Felder, die wie oben beschrieben wieder aufgedeckt werden können.
 
-\subparagraph{2. AC-3 und Revise}
+\subsubsection{AC-3 und Revise}
 
 Der Kern der Algorithmen für CSPs stellt der mittlerweile weit verbreitete Algorithmus AC-3 mit Revise dar, wie er von Alan Mackworth in 
-Quelle [y] beschrieben wird. Als Pseudocode beschrieben sind sie wie in den folgenden Abbildungen [x] und [y]:
-\begin{figure}
-    \centering
-    \begin{subcaptionblock}{.4\textwidth}
+\cite{Alan} beschrieben wird. Als Pseudocode ausgedrückt sind sie wie in den folgenden Abbildungen \ref{AC3} und \ref{Revise}:
+
+\begin{figure}[!htb]
     \centering
     \includegraphics{AC3-AlanMackworth}
-    \caption{AC-3 Algorithmus}\label{cat}
-    \end{subcaptionblock}%
-    \begin{subcaptionblock}{.4\textwidth}
+    \caption{Pseudocode AC-3 Algorithmus}\label{AC3}
+\end{figure}
+\begin{figure}[!htb]
     \centering
     \includegraphics{Revise_AlanMackworth}
-    \caption{Revise Algorithmus}\label{elephant}
-    \end{subcaptionblock}%
-    \caption{AC-3 + Revise Pseudocode}\label{animals}
+    \caption{Pseudocode Revise Algorithmus}\label{Revise}
 \end{figure}
 
 Der AC-3 Algorithmus beginnt mit Node Consistency ($NC(i)$). Diese ist bereits durch das Aufdecken gegeben und es können sich direkt mit den
@@ -83,9 +82,9 @@ das nicht der Fall, wird diese Kante einfach übersprungen.
 
 Nach 2. und vor 3. kommt in meinem Algorithmus noch ein Zwischenschritt. Da immer wieder zu AC-3 zurückgekehrt wird, kann es sein, dass bereits
 alle Minen gefunden wurden. Tritt der Fall ein, können die restlichen Felder einfach aufgedeckt und der \textit{Solver} vollständig
-konsistent gemacht werden. Dann ist der Algorithmus ebenfalls abgeschlossen. Ansonsten zu 3.
+konsistent gemacht werden. Dann ist der Algorithmus ebenfalls abgeschlossen. Ansonsten geht es bei [Backtracking] weiter.
 
-\subparagraph{3. Backtracking}
+\subsubsection{Backtracking}
 
 Ist keine Lösung durch AC-3 gefunden worden, kommt Backtracking zum Einsatz, wie er auch in Quelle[y] beschrieben wird. Hierbei geht es darum,
 für alle nicht belegten Variablen alle möglichen Zuweisungen zu generieren, testen und gültige zu sammeln. Schon bei kleinen Wertebereichen
@@ -105,4 +104,27 @@ Um dem entgegenzuwirken, wurden folgende Maßnahmen getroffen:
     auf $\mathcal{O}(2^{10})$ zu begrenzen.
 \end{enumerate}
 
-Wie werden Zuweisungen nun auf Gültigkeit geprüft?
+Wie werden Zuweisungen nun auf Gültigkeit geprüft?\\
+Zuerst werden nur die Zuweisungen genommen, wo die Summe der Werte zwischen 1 und Anzahl Minen liegt bzw. gleich Anz. Minen ist, wenn es
+sich um die letzen Felder/ Variablen handelt. Diese Unterscheidung beschreibt, dass die übrigen Minen nicht alle auf oder neben den gerade
+betrachteten Feldern liegen müssen, sondern noch weiter außerhalb sein können. Wenn es sich um die letzten Felder handelt, müssen sich die
+Minen offensichtlich unter denen befinden. Beispielsweise für den Fall, dass in der oberen linken Ecke eine 1 aufgedeckt wurde und Lösungen
+generiert werden sollen, 3 mögliche Zuweisungen enstehen, nämlich dass genau ein Nachbar die Mine haben könnte.
+Alle damit gültigen Zuweisungen werden dann weiter überprüft, in dem alle Werte probeweise gesetzt werden und auf Verletzung ihrer Constraints
+geprüft wird. Wird nur der Constraint einer Variablen verletzt, ist die gesamte Zuweisung ungültig und wird verworfen. Andernfalls ist sie
+gültig und kann zu der Menge der gültigen Lösungen hinzugefügt werden. An dieser Stelle werden dann auch Berechnungen in den Cache getan, 
+zu Beginn der Lösungsüberprüfung abgefragt und regelmäßig aktualisiert (da sich das Spielfeld und damit die Umstände dynamisch ändern).
+
+Wie wird mit den gültigen Zuweisungen umgegangen?\\
+Je nachdem, wie viele Lösungen generiert worden sind, wird unterschiedlich weiter verfahren.
+\begin{enumerate}
+    \item \textbf{Es wurde keine gültige Lösung gefunden.} Konnte keine gültige Lösung gefunden werden, können wir nur damit weitermachen,
+    ein zufälliges Feld auszuwählen und aufzudecken und anschließend wieder zu AC-3 zu gehen.
+    \item \textbf{Es wurde genau eine gültige Lösung gefunden.} Konnte nur eine Lösung gefunden werden, dann kann direkt jedem der zugehörigen
+    Variablen sein Wert zugewiesen werden. Hier zugewiesene Minen können markiert und sichere Felder aufgedeckt werden. Danach wird wieder
+    [AC-3] ausgeführt. 
+    \item \textbf{Es wurden mehrere gültige Lösungen gefunden.} Konnten mehrere Lösungen gefunden werden, werden diese zuerst gemeinsam betrachtet.
+    Sollte es sichere Felder in jeder Lösung geben, also solche, für welche die Variable immer 0 ist, können diese aufgedeckt und zu AC-3
+    zurückgekehrt werden. Gibt es jedoch kein sicheres Feld, wird die erste Lösung ausgewählt und alle dort als sicher markierten Felder
+    aufgedeckt und auch zu AC-3 zurückgekehrt
+\end{enumerate}

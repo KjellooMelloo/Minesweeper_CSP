@@ -14,9 +14,13 @@
 %\usepackage{showframe}    % Layout Debugging
 \usepackage{lipsum}       % for example only
 \usepackage{blindtext}    % for example only
+\usepackage{hyperref}
 
 \sisetup{locale = DE}     % siunitx locale setup
 %\DeclareSIUnit \fps{fps}  % a custom unit (usage: \SI{24}{\fps})
+
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
 
 \begin{document}
 \input{configuration/configuration}    % load all settings
@@ -38,9 +42,6 @@
 \newpage
 \tableofcontents
 
-% Uncomment if list of source code is needed (rarely).
-%\lstlistoflistings  % requires package listings, needs to uncommenting of usepackage
-
 % path to the chapters folder is set to find the images used there
 \graphicspath{ {./chapters/} }
 
@@ -54,9 +55,9 @@
 
 \ITextBlockKeywords
 
-\input{chapters/first_chapter}
+\input{chapters/intro}
 % Add additional chapters here
-\input{chapters/second_chapter.tex}
+\input{chapters/algorithm}
 
 %\bibliographystyle{plain}
 \bibliographystyle{dinat}
