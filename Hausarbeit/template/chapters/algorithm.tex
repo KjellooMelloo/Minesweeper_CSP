@@ -4,9 +4,11 @@
 \graphicspath{{chapters/images/}}
 \section{Algorithmus}
 
-Der gesamte Quellcode zu dem hier beschriebenen Algorithmus befindet sich unter \url{https://github.com/KjellooMelloo/Minesweeper_CSP}
+Der gesamte Quellcode zu dem hier beschriebenen Algorithmus befindet sich unter\\
+\url{https://github.com/KjellooMelloo/Minesweeper_CSP}
 
 \subsection{Definition}
+
 Um ein Constraint Satisfaction Problem formal beschreiben zu können, müssen eine Menge von Variablen, die Menge 
 ihrer Wertebereiche und die Definition der Constraints festgelegt werden. Für Minesweeper habe ich dies wie folgt definiert:
 Für ein Spielfeld mit $n\in \mathbb{N}$ Spalten und $m\in\mathbb{N}$ Zeilen sind
@@ -21,6 +23,7 @@ welcher den Constraint des Nachbars verletzen würde. Diese sind Teilschritte da
 Der Constraint-Graph ergibt sich für dieses Spiel trivial als Graph des Spielfelds.
 
 \subsection{Besonderheiten Minesweeper}
+
 Eine der Besonderheiten, um das Spiel Minesweeper zu lösen zu können, ist das Aufdecken der Felder, womit die Konstante auf diesem Feld
 bekannt wird und daraus dynamisch Constraints definiert werden können. Daraus ergibt sich, dass der Algorithmus immer wiederholt wird,
 wenn neue Informationen durch Aufdecken erlangt werden. Mit dieser Art der unvollständigen Information über das Spielfeld unterscheidet es
@@ -127,4 +130,22 @@ Je nachdem, wie viele Lösungen generiert worden sind, wird unterschiedlich weit
     Sollte es sichere Felder in jeder Lösung geben, also solche, für welche die Variable immer 0 ist, können diese aufgedeckt und zu AC-3
     zurückgekehrt werden. Gibt es jedoch kein sicheres Feld, wird die erste Lösung ausgewählt und alle dort als sicher markierten Felder
     aufgedeckt und auch zu AC-3 zurückgekehrt
+\end{enumerate}
+
+\subsection{Determinierung}
+
+Der Algorithmus kann auf mehrere Arten determinieren. Folgend die Möglichkeiten:
+\begin{enumerate}
+    \item Der Algorithmus determiniert, weil das Spiel nach Minesweeper Regeln beendet ist. Dies ist entweder der Fall, wenn alle Felder aufgedeckt
+    wurden, die keine Minen sind (es müssen nicht zwingend alle Minen markiert werden, dies ist im Grunde nur für die Orientierung eines menschlichen
+    Spielers) oder eine Mine aufgedeckt wurde. Der Solver könnte eine Mine aufdecken, wenn bei der Lösungsfindung in Backtracking keine Lösung
+    gefunden und folgend ein zufälliges Feld aufgedeckt wurde.
+    \item Der Algorithmus determiniert, weil der Solver konsistent ist. In dem Fall müssen vorher nicht alle Felder aufgedeckt sein, werden
+    es aber der Vollständigkeits halber vor Abschluss gemacht. Der Solver ist konsistent genau dann, wenn alle Variablen konsistent sind, 
+    jede Variable einen Wert hat bzw. Wertebereich der Größe 1 und wenn die Summe der Variablen mit dem Wert 1 gleich der Anzahl der Minen ist.
+    Variablen sind an sich konsistent, wenn sie als Mine markiert ist oder wenn die Summe der Werte der Variablen der Nachbarn gleich der
+    Konstante $k$ dieser Variablen sind.
+    \item Das Spiel ist nicht vorbei und der Solver ist nicht konsistent, aber alle Minen sind markiert und es existieren noch verdeckte Felder.
+    Dann werden diese einfach aufgedeckt, bekommen ihre Werte zugewiesen und der Solver ist anschließend konsistent. Dies spart eine womöglich
+    aufwändige Lösungsgenerierung durch Backtracking, weil es ein trivialer Fall ist.
 \end{enumerate}

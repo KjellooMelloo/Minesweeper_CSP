@@ -7,6 +7,7 @@
 \contentsline {subsubsection}{\numberline {2.3.1}Startpunkt und Aufdecken}{2}{subsubsection.2.3.1}%
 \contentsline {subsubsection}{\numberline {2.3.2}AC-3 und Revise}{3}{subsubsection.2.3.2}%
 \contentsline {subsubsection}{\numberline {2.3.3}Backtracking}{4}{subsubsection.2.3.3}%
-\contentsline {section}{\nonumberline Literatur}{6}{section*.5}%
-\contentsline {section}{Selbstständigkeitserklärung}{7}{section*.5}%
+\contentsline {subsection}{\numberline {2.4}Determinierung}{6}{subsection.2.4}%
+\contentsline {section}{\nonumberline Literatur}{7}{section*.5}%
+\contentsline {section}{Selbstständigkeitserklärung}{8}{section*.5}%
 \providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 

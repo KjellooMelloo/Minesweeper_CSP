@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from minesweeper import Minesweeper
+from minesweeper import Minesweeper, Cell
 from minesweeper_solver import MinesweeperSolver
 from BasicPatternGenerator import BasicPatternGenerator
 
