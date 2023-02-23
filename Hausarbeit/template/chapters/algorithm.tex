@@ -76,22 +76,24 @@ Der Kern der Algorithmen für CSPs stellt der mittlerweile weit verbreitete Algo
 
 Der AC-3 Algorithmus beginnt mit Node Consistency ($NC(i)$). Diese ist bereits durch das Aufdecken gegeben und es kann direkt mit den
 binären Constraints fortgeführt werden. In meiner Implementierung beinhaltet die $Q$ die erzeugten binären Constraints. Für jede Kante wird
-dann \textit{Revise} ausgeführt.\clearpage
+dann \textit{Revise} ausgeführt.
 Gibt es in \textit{Revise} eine Änderung, kann der übrig gebliebene Wert direkt gesetzt werden, da der 
 Wertebereich nur aus 0 und 1 besteht. Haben wir hier eine Mine gefunden, kann diese auch für das Spiel direkt (mit einer Flagge) markiert
-werden. Alle Nachbarn von $k$ werden dann in $Q$ hinzugefügt. Desweiteren findet hier eine Überprüfung statt, ob die Variable $(xk, yk)$ bereits
+werden. Alle Nachbarn von $k$ werden dann in $Q$ hinzugefügt.\\ Desweiteren findet hier eine Überprüfung statt, ob die Variable $(xk, yk)$ bereits
 konsistent ist (Referenz Konsistenz). Ist dies der Fall, sind alle benachbarten Felder mit dem Wert 0 sicher und können aufgedeckt werden.
 Ist $Q$ leer, wird erst geschaut, ob das Spiel vorbei ist, nämlich genau dann wenn eine Mine oder alle Felder, die keine Mine sind, aufgedeckt
-wurden. In dem Fall sind wir bereits fertig und können beenden. Ansonsten wird geschaut, ob sichere Felder zum Aufdecken hinzugefügt wurden
+wurden. In dem Fall sind wir bereits fertig und können beenden.\clearpage Ansonsten wird geschaut, ob sichere Felder zum Aufdecken hinzugefügt wurden
 und von vorne begonnen. Ist die $Q$ leer, das Spiel aber noch nicht vorbei oder gelöst, geht es mit Backtracking weiter.
 
 Der Revise-Algorithmus schaut sich die Kanten/ binären Constraints an und prüft auf mögliche Verletzung der Constraints. Es wird jeder Wert
 von $i$ der Kante $(i,j)$ bzw. $((xi, yi), (xj, yj))$ probeweise gesetzt und geschaut, ob dies dazu führt, dass $j$ keinen Wert annehmen kann,
 der diesen Constraint erfüllen könnte. In dem Fall wird der getestete Wert für $i$ gelöscht und $DELETE$ auf \textit{false} gesetzt. Der Test
-auf Verletzung dieses Constraints wird wie folgt durchgeführt:\\ Für jeden Wert im Wertebereich von $j$ wird geschaut, ob dies seinen Constraint
+auf Verletzung dieses Constraints wird wie folgt durchgeführt:
+
+Für jeden Wert im Wertebereich von $j$ wird geschaut, ob dies seinen Constraint
 zu allen Nachbarn verletzt. Dies kann der Fall sein, wenn für einen Nachbarn zu viele oder zu wenig Minen existieren würden, also die Summe
 der Werte aller Nachbarn größer als die Konstante sind oder die Anzahl der unbestimmten Nachbarn nicht mehr die erforderliche Anzahl an Minen 
-erreichen könnten. 
+erreichen könnten.\\
 Für \textit{Revise} muss beachtet werden, dass wir die Konstante von $j$ bei $(i,j)$ wissen müssen, das Feld also aufgedeckt sein muss. Ist
 das nicht der Fall, wird diese Kante einfach übersprungen.
 
@@ -105,7 +107,7 @@ Ist keine Lösung durch AC-3 gefunden worden, kommt Backtracking zum Einsatz, wi
 für alle nicht belegten Variablen alle möglichen Zuweisungen zu generieren, testen und gültige zu sammeln.\\ Schon bei kleinen Wertebereichen
 führt dies zu einer hohen Komplexität. Im unserem Fall mit einem Wertebereich der Größe 2, liegt die Komplexität bei $\mathcal{O}(2^n)$.
 Bei einem Minesweeper-Spielfeld für die Schwierigkeit \textit{Beginner} (8x8 mit 10 Minen) nimmt die Komplexität häufig ungewollte Ausmaße an.
-Um dem entgegenzuwirken, wurden folgende Maßnahmen getroffen:
+Um dem entgegenzuwirken, wurden folgende Maßnahmen getroffen:\clearpage
 \begin{enumerate}
     \item Um nicht alle Möglichkeiten generieren zu müssen und dann zu testen, wird vorzeitig abgebrochen, falls eine Zuweisung nicht gültig sein
     kann. Dies tritt beispielsweise ein, wenn die Summe der Werte in der Zuweisung größer als die Anzahl der übrigen Minen ist. Umgesetzt wird
@@ -131,7 +133,7 @@ ihrer Variablen geprüft wird. Wird nur der Constraint \textit{einer} Variablen 
 Andernfalls ist sie gültig und kann zu der Menge der gültigen Lösungen hinzugefügt werden. An dieser Stelle werden dann auch Berechnungen
 in den Cache getan, zu Beginn der Lösungsüberprüfung abgefragt und regelmäßig aktualisiert (da sich das Spielfeld und damit die Umstände
 dynamisch ändern).
-
+\clearpage
 \textit{Wie wird mit den gültigen Zuweisungen umgegangen?}
 
 Je nachdem, wie viele Lösungen generiert worden sind, wird unterschiedlich weiter verfahren.
@@ -152,11 +154,10 @@ Je nachdem, wie viele Lösungen generiert worden sind, wird unterschiedlich weit
 Der Algorithmus kann auf mehrere Arten determinieren. Folgend die Möglichkeiten:
 \begin{enumerate}
     \item Der Algorithmus determiniert, weil das Spiel nach Minesweeper Regeln beendet ist. Dies ist entweder der Fall, wenn alle Felder aufgedeckt
-    wurden, die keine Minen sind (es müssen nicht zwingend alle Minen markiert werden, dies ist im Grunde nur zur Orientierung eines menschlichen
-    Spielers) oder eine Mine aufgedeckt wurde. Der Solver könnte eine Mine aufdecken, wenn bei der Lösungsfindung in Backtracking keine Lösung
+    wurden, die keine Minen sind oder eine Mine aufgedeckt wurde. Der Solver könnte eine Mine aufdecken, wenn bei der Lösungsfindung in Backtracking keine Lösung
     gefunden und folgend ein zufälliges Feld aufgedeckt wurde.
-    \item Der Algorithmus determiniert, weil der Solver konsistent ist. In dem Fall müssen vorher nicht alle Felder aufgedeckt sein, werden
-    es aber der Vollständigkeits halber vor Abschluss gemacht. Der Solver ist konsistent genau dann, wenn alle Variablen konsistent sind, 
+    \item Der Algorithmus determiniert, weil der Solver konsistent ist. In dem Fall müssen vorher nicht alle Felder aufgedeckt sein, es wird
+    aber der Vollständigkeits halber gemacht. Der Solver ist konsistent genau dann, wenn alle Variablen konsistent sind, 
     jede Variable einen Wert hat bzw. Wertebereich der Größe 1 und wenn die Summe der Variablen mit dem Wert 1 gleich der Anzahl der Minen ist.
     Variablen sind an sich konsistent, wenn sie als Mine markiert sind oder wenn die Summe der Werte der Variablen der Nachbarn gleich der
     Konstante $k$ dieser Variablen sind.
