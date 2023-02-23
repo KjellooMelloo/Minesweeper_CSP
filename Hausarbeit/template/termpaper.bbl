@@ -1,16 +1,49 @@
-\begin{thebibliography}{1}
-% this bibliography was produced with the style dinat.bst v2.5
-\makeatletter
-\newcommand{\dinatlabel}[1]%
-{\ifNAT@numbers\else\NAT@biblabelnum{#1}\hspace{2\labelsep}\fi}
-\makeatother
-\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
-\expandafter\ifx\csname url\endcsname\relax\def\url#1{\texttt{#1}}\fi
+\begin{thebibliography}{7}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[MS()]{MS}
+Minesweeper website.
+\newblock \url{https://minesweepergame.com/}.
+\newblock Abgerufen: 2023-02-23.
+
+\bibitem[Becerra(2015)]{AlgoApproaches}
+David~J. Becerra.
+\newblock Algorithmic approaches to playing minesweeper.
+\newblock Bachelor's thesis, Harvard College, 2015.
+\newblock URL \url{http://nrs.harvard.edu/urn-3:HUL.InstRepos:14398552}.
 
 \bibitem[Mackworth(1977)]{Alan}
-\dinatlabel{Mackworth 1977} \textsc{Mackworth}, A.:
-\newblock \emph{Consistency in Network Relations}. Bd.~8.
-\newblock 1977. --
-\newblock 99--118~S
+A.~Mackworth.
+\newblock Consistency in network relations.
+\newblock \emph{Artificial Intelligence}, 8:\penalty0 99--118, 1977.
+\newblock URL \url{https://doi.org/10.1016/0004-3702(77)90007-8}.
+
+\bibitem[sta()]{statistics}
+Jsminesweeper.
+\newblock \url{https://github.com/DavidNHill/JSMinesweeper}.
+\newblock Abgerufen: 2023-02-23.
+
+\bibitem[mat()]{matrix}
+Solving minesweeper with matrices.
+\newblock
+  \url{https://massaioli.wordpress.com/2013/01/12/solving-minesweeper-with-matricies/}.
+\newblock Abgerufen: 2023-02-23.
+
+\bibitem[Kaye(2000)]{MS-NP}
+R.~Kaye.
+\newblock Minesweeper is np-complete.
+\newblock \emph{The Mathematical Intelligencer}, 22:\penalty0 9--15, 2000.
+\newblock URL \url{https://link.springer.com/article/10.1007/BF03025367}.
+
+\bibitem[Kaye(2007)]{MS-Conf}
+R.~Kaye.
+\newblock Some minesweeper configurations.
+\newblock Technical report, School of Mathematics The University of Birmingham,
+  2007.
+\newblock URL \url{https://web.mat.bham.ac.uk/R.W.Kaye/minesw/minesw.pdf}.
 
 \end{thebibliography}

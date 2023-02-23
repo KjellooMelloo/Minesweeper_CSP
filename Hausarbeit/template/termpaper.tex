@@ -15,6 +15,8 @@
 \usepackage{lipsum}       % for example only
 \usepackage{blindtext}    % for example only
 \usepackage{hyperref}
+\usepackage{listings}
+\usepackage[section]{placeins}
 
 \sisetup{locale = DE}     % siunitx locale setup
 %\DeclareSIUnit \fps{fps}  % a custom unit (usage: \SI{24}{\fps})
@@ -56,11 +58,14 @@
 \ITextBlockKeywords
 
 \input{chapters/intro}
-% Add additional chapters here
 \input{chapters/algorithm}
+\input{chapters/results.tex}
+\input{chapters/conclusion.tex}
 
 %\bibliographystyle{plain}
-\bibliographystyle{dinat}
+%\bibliographystyle{dinat}
+\bibliographystyle{unsrtnat}
+\clearpage
 \bibliography{literature}
 
 \Istatement

@@ -1,0 +1,18 @@
+% !TEX root = ../termpaper.tex
+% @author Kjell May
+%
+\graphicspath{{chapters/images/}}
+\section{Fazit und Aussicht}
+
+In dieser Hausarbeit wurde ein Algorithmus entwickelt und vorgestellt, der versucht Minesweeper als Constraint Satisfaction Problem lösen
+zu können. Es hat sich gezeigt, dass diese Version schnell an Grenzen stößt und nur sehr einfache Konfigurationen lösen kann. Der Solver
+ließe sich an einigen Stellen sicherlich noch erweitern und verbessern. Man könnte beispielsweise bei Auswahl des nächsten Feldes als 
+Heuristik Wahrscheinlichkeiten, dass ein Feld eine Mine ist, nehmen, um möglicherweise mehr Fortschritt erlangen und ein vorzeitiges
+Ende verzögern zu können. Ein paar Beispiel für andere Ansätze und Untersuchungen:\\
+David Becerra hat in seiner Bachelorthesis \cite{AlgoApproaches} intensiver verschiedene Ansätze ausprobiert und
+ist zu deutlich besseren Ergebnissen gekommen. Der Benutzer \textit{DavidNHill} hat einen Solver geschrieben (siehe \cite{statistics}), der
+bei jedem Klick die Wahrscheinlichkeit für ein sicheres Feld berechnet. Robert Massaioli hat einen Algorithmus geschrieben, der Minesweeper
+mit einem Matrizen-Ansatz löst (siehe \cite{matrix}). Aus einer Kombination der verschiedenen Ansätze könnte ein womöglich
+effizienterer Algorithmus entwickelt werden.
+Wie jedoch in \cite{MS-NP} und \cite{MS-Conf} von Richard Kaye gezeigt wurde, ist Minesweeper NP-complete und damit
+ein effizienter Algorithmus zum Lösen dieses Spiel zu finden, sehr herausfordernd.

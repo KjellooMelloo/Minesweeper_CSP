@@ -4,3 +4,52 @@
 \graphicspath{{chapters/images/}}
 \section{Experimente und Ergebnisse}
 
+Um die Qualität des Solvers bestimmen zu können, wurde er mit unterschiedlichen Spielfeldgrößen und Minenanzahl getestet. Eine Beispielausgabe
+der Konsole für ein Spiel der Schwierigkeit "Beginner" (8x8 mit 10 Minen):
+\begin{lstlisting}[basicstyle=\tiny]
+Mines left: 10, Cells left: 64
+Starting solve with AC-3 and revise
+Mines left: 10, Cells left: 64
+Generating solutions
+Solutions found: 129
+Looking for a safe cell in any solution
+Found safe cell: 5 5
+Mines left: 3, Cells left: 31
+Starting solve with AC-3 and revise
+Mines left: 3, Cells left: 30
+Generating solutions
+Solutions found: 129
+Looking for a safe cell in any solution
+Found safe cell: 6 0
+Mines left: 3, Cells left: 30
+Starting solve with AC-3 and revise
+Mines left: 3, Cells left: 25
+Generating solutions
+Solutions found: 175
+Looking for a safe cell in any solution
+No safe cell found.
+Taking corner
+Mines left: 3, Cells left: 25
+Starting solve with AC-3 and revise
+Mines left: 0, Cells left: 8
+No more mines left, can uncover rest of cells
+Won
+\end{lstlisting}
+\clearpage
+Zur Übersicht sind hier Ergebnisse verschiedenster Feldkonfigurationen und ihre Ergebnisse bei 50 Durchläufen mit durchschnittlicher Laufzeit
+und wie weit sie in gescheiterten Versuchen gekommen sind:\\
+
+\begin{tabular}{ |p{3cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|  }
+    \hline
+    Höhe x Breite& nMinen& Erfolgsrate &\O Zeit&\O Fortschritt\\
+    \hline
+    5x5     &3  & 80\%  & 0.0132s   & 91.12\%\\
+    8x8     &10 & 12\%  & 0.1019s   & 31.04\%\\
+    12x12   &25 & 2\%   & 0.2381s   & 18.21\%\\
+    16x16   &40 & 0\%   & 0.2495s   & 13.1\%\\
+    \hline
+\end{tabular}
+
+Wie sich erkennen lässt, ist der Solver bereits ab der Spielfeldkonfiguration für Beginner nicht sehr erfolgreich. Das liegt daran, dass recht häufig
+ein Punkt erreicht wird, an dem viele Lösungen möglich sind, kein sicheres Feld sich daraus ergibt und dann ein zufälliges Feld genommen werden muss.
+Für einfachere Spiele, kann er jedoch das Spiel recht verlässlich lösen.
