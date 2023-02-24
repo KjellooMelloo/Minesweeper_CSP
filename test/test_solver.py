@@ -119,6 +119,38 @@ class TestMinesweeperSolver(TestCase):
         self.assertTrue(self.solver.domains[(1, 2)] == {1})  # domain correct
         self.assertTrue(self.solver.values[(1, 2)] == 1)  # mine value correct
 
+    def test_puzzles_2s(self):
+        """
+        | ?| ?| ?| ?| ?| ?|
+        | ?| 2| 2| 2| 2| ?|
+        | ?| 2| 0| 0| 2| ?|
+        | ?| 2| 0| 0| 2| ?|
+        | ?| 2| 2| 2| 2| ?|
+        | ?| ?| ?| ?| ?| ?|
+        """
+        self.game = Minesweeper(6, 6, 8)
+        board = self.game.board
+        for x in range(self.game.cols):
+            for y in range(self.game.rows):
+                if x == 0 or y == 0 or x == 5 or y == 5:
+                    if 2 <= x <= 3 or 2 <= y <= 3:
+                        board[x][y] = Cell(x, y, 9)
+                    elif x == y or x == 0 and y == 5 or y == 0 and x == 5:
+                        board[x][y] = Cell(x, y, 0)
+                    else:
+                        board[x][y] = Cell(x, y, 1)
+                else:
+                    board[x][y] = Cell(x, y, 2)
+        board[2][2] = Cell(2, 2, 0)
+        board[3][2] = Cell(3, 2, 0)
+        board[2][3] = Cell(2, 3, 0)
+        board[3][3] = Cell(3, 3, 0)
+        self.game.print()
+        self.solver = MinesweeperSolver(self.game, starting_point=(2, 2), verbose=True)
+        self.preconditions()
+        self.assertTrue(self.solver.solve())
+        self.postconditions()
+
     # ----- HELPER ----- #
 
     def preconditions(self):
