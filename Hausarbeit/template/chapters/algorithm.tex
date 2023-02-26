@@ -16,7 +16,7 @@ die Variablen\\
 $X=\{(x, y) | 2\le x\le n  \textit{ und }  2\le y\le m\}$
 und ihre Wertebereiche $D=\{0, 1\}$, wobei 1 für eine Mine steht und 0 für ein sicheres Feld.
 
-Die Constraints müssen umfangreicher definiert werden. Für jede Variable $(x, y)$ gibt es den Constraint auf ihm und alle seiner 
+Die Constraints müssen umfangreicher definiert werden. Für jede Variable $(x, y)$ gibt es den Constraint auf ihn und alle seine
 Nachbarn, dass der Wert auf dem Feld der Variablen, desweiteren als Konstante $k(x, y) \text{ mit } k\in\mathbb{N}$ 
 benannt, gleich der Summe aller Werte der Nachbarsvariablen ist. Formal definiert wäre dies\\
 $C=\{C(x, y) | k(x, y) = \sum_{\substack{0\le a\le n-1\\0<b<m-1}}{(a, b)} \text{ mit } (a, b)\in N_G((x, y))\}$.\\
@@ -26,7 +26,7 @@ Der Constraint-Graph ergibt sich für dieses Spiel trivial als Graph des Spielfe
 
 \subsection{Besonderheiten Minesweeper}
 
-Eine der Besonderheiten, um das Spiel Minesweeper zu lösen zu können, ist das Aufdecken der Felder, womit die Konstante auf diesem Feld
+Eine der Besonderheiten, um das Spiel Minesweeper lösen zu können, ist das Aufdecken der Felder, womit die Konstante auf diesem Feld
 bekannt wird und damit dynamisch Constraints definiert werden können. Daraus ergibt sich, dass der Algorithmus immer wiederholt wird,
 wenn neue Informationen durch Aufdecken erlangt werden. Mit dieser Art der unvollständigen Information über das Spielfeld unterscheidet es
 sich deutlich von anderen CSPs wie Sudoku, das Vier-Farben-Problem oder das Damenproblem.
@@ -78,33 +78,33 @@ Der AC-3 Algorithmus beginnt mit Node Consistency ($NC(i)$). Diese ist bereits d
 binären Constraints fortgeführt werden. In meiner Implementierung beinhaltet die $Q$ die erzeugten binären Constraints. Für jede Kante wird
 dann \textit{Revise} ausgeführt.
 Gibt es in \textit{Revise} eine Änderung, kann der übrig gebliebene Wert direkt gesetzt werden, da der 
-Wertebereich nur aus 0 und 1 besteht. Haben wir hier eine Mine gefunden, kann diese auch für das Spiel direkt (mit einer Flagge) markiert
+Wertebereich nur aus 0 und 1 besteht. Ist hier eine Mine gefunden worden, kann diese auch für das Spiel direkt (mit einer Flagge) markiert
 werden. Alle Nachbarn von $k$ werden dann in $Q$ hinzugefügt.\\ Desweiteren findet hier eine Überprüfung statt, ob die Variable $(xk, yk)$ bereits
 konsistent ist (Referenz Konsistenz). Ist dies der Fall, sind alle benachbarten Felder mit dem Wert 0 sicher und können aufgedeckt werden.
 Ist $Q$ leer, wird erst geschaut, ob das Spiel vorbei ist, nämlich genau dann wenn eine Mine oder alle Felder, die keine Mine sind, aufgedeckt
-wurden. In dem Fall sind wir bereits fertig und können beenden.\clearpage Ansonsten wird geschaut, ob sichere Felder zum Aufdecken hinzugefügt wurden
-und von vorne begonnen. Ist die $Q$ leer, das Spiel aber noch nicht vorbei oder gelöst, geht es mit Backtracking weiter.
+wurden. In dem Fall ist der Algorithmus bereits abgeschlossen.\clearpage Ansonsten wird geschaut, ob sichere Felder zum Aufdecken hinzugefügt wurden
+und der Algorithmus springt zum Anfang. Ist die $Q$ leer, das Spiel aber noch nicht vorbei oder gelöst, geht es mit Backtracking weiter.
 
-Der Revise-Algorithmus schaut sich die Kanten/ binären Constraints an und prüft auf mögliche Verletzung der Constraints. Es wird jeder Wert
+Der Revise-Algorithmus untersucht die Kanten/ binären Constraints an und prüft auf mögliche Verletzung der Constraints. Es wird jeder Wert
 von $i$ der Kante $(i,j)$ bzw. $((xi, yi), (xj, yj))$ probeweise gesetzt und geschaut, ob dies dazu führt, dass $j$ keinen Wert annehmen kann,
 der diesen Constraint erfüllen könnte. In dem Fall wird der getestete Wert für $i$ gelöscht und $DELETE$ auf \textit{false} gesetzt. Der Test
 auf Verletzung dieses Constraints wird wie folgt durchgeführt:
 
 Für jeden Wert im Wertebereich von $j$ wird geschaut, ob dies seinen Constraint
-zu allen Nachbarn verletzt. Dies kann der Fall sein, wenn für einen Nachbarn zu viele oder zu wenig Minen existieren würden, also die Summe
+zu allen Nachbarn verletzt. Dies kann der Fall sein, wenn für einen Nachbarn zu viele oder zu wenige Minen existieren würden, also die Summe
 der Werte aller Nachbarn größer als die Konstante sind oder die Anzahl der unbestimmten Nachbarn nicht mehr die erforderliche Anzahl an Minen 
 erreichen könnten.\\
-Für \textit{Revise} muss beachtet werden, dass wir die Konstante von $j$ bei $(i,j)$ wissen müssen, das Feld also aufgedeckt sein muss. Ist
+Für \textit{Revise} muss beachtet werden, dass die Konstante von $j$ bei $(i,j)$ bekannt, das Feld also aufgedeckt sein muss. Ist
 das nicht der Fall, wird diese Kante einfach übersprungen.
 
 Nach AC-3 mit Revise und vor Backtracking kommt im Algorithmus noch ein Zwischenschritt. Da immer wieder zu AC-3 zurückgekehrt wird, kann es 
 sein, dass bereits alle Minen gefunden wurden. Tritt der Fall ein, können die restlichen Felder einfach aufgedeckt und der \textit{Solver}
-vollständig konsistent gemacht werden. Dann ist der Algorithmus ebenfalls abgeschlossen. Ansonsten geht es mit Backtracking weiter.
+vollständig konsistent gemacht werden. Dann ist der Algorithmus ebenfalls abgeschlossen. Ansonsten wird mit Backtracking fortgesetzt.
 
 \subsubsection{Backtracking}
 
-Ist keine Lösung durch AC-3 gefunden worden, kommt Backtracking zum Einsatz, wie er auch in \cite{Alan} beschrieben wird. Hierbei geht es darum,
-für alle nicht belegten Variablen alle möglichen Zuweisungen zu generieren, testen und gültige zu sammeln.\\ Schon bei kleinen Wertebereichen
+Ist keine Lösung durch AC-3 gefunden worden, kommt Backtracking zum Einsatz, wie es auch in \cite{Alan} beschrieben wird. Hierbei geht es darum,
+für alle nicht belegten Variablen alle möglichen Zuweisungen zu generieren, zu testen und gültige zu sammeln.\\ Schon bei kleinen Wertebereichen
 führt dies zu einer hohen Komplexität. Im unserem Fall mit einem Wertebereich der Größe 2, liegt die Komplexität bei $\mathcal{O}(2^n)$.
 Bei einem Minesweeper-Spielfeld für die Schwierigkeit \textit{Beginner} (8x8 mit 10 Minen) nimmt die Komplexität häufig ungewollte Ausmaße an.
 Um dem entgegenzuwirken, wurden folgende Maßnahmen getroffen:\clearpage
@@ -112,18 +112,18 @@ Um dem entgegenzuwirken, wurden folgende Maßnahmen getroffen:\clearpage
     \item Um nicht alle Möglichkeiten generieren zu müssen und dann zu testen, wird vorzeitig abgebrochen, falls eine Zuweisung nicht gültig sein
     kann. Dies tritt beispielsweise ein, wenn die Summe der Werte in der Zuweisung größer als die Anzahl der übrigen Minen ist. Umgesetzt wird
     dies rekursiv aus Effizienz- und Lesbarkeitsgründen.
-    \item Da viele Berechnungen durchgeführt werden, bei Tests auf Gültigkeit, wird \textit{Memoization} eingesetzt, also eine Art Cache eingeführt,
+    \item Da bei Tests auf Gültigkeit viele Berechnungen durchgeführt werden, wird \textit{Memoization} eingesetzt, also eine Art Cache eingeführt,
     in dem bereits berechnete Lösungen gespeichert werden. 
     \item Um die Komplexität weiter zu reduzieren, werden außerdem Heuristiken festgelegt und genutzt. Da es regelmäßig vorkommt, dass ein
     Großteil der unbelegten Variablen keine aufgedeckten Nachbarn haben und damit wenig über die Gültigkeit einer Zuweisung dieser Variablen
-    gesagt werden kann, werden diese exkludiert. In die Menge der Variablen, die für Backtracking angeschaut werden, kommen also nur solche,
-    welche mind. einen Nachbar besitzen, der aufgedeckt ist. Desweiteren werden davon nur maximal 10 Variablen genommen, um die Komplexität
+    ausgesagt werden kann, werden diese exkludiert. In die Menge der Variablen, die für Backtracking angeschaut werden, kommen also nur solche,
+    welche mindestens einen Nachbar besitzen, der aufgedeckt ist. Desweiteren werden davon nur maximal 10 Variablen genommen, um die Komplexität
     auf $\mathcal{O}(2^{10})$ zu begrenzen.
 \end{enumerate}
 
 \textit{Wie werden Zuweisungen nun auf Gültigkeit geprüft?}
 
-Zuerst werden nur die Zuweisungen genommen, wo die Summe der Werte zwischen 1 und Anzahl Minen liegt bzw. gleich Anz. Minen ist, wenn es
+Zuerst werden nur die Zuweisungen genommen, in denen die Summe der Werte zwischen 1 und Anzahl Minen liegt bzw. gleich Anz. Minen ist, wenn es
 sich um die letzen Felder/ Variablen handelt. Diese Unterscheidung beschreibt, dass die übrigen Minen nicht alle auf oder neben den gerade
 betrachteten Feldern liegen müssen, sondern noch weiter außerhalb sein können. Wenn es sich um die letzten Felder handelt, müssen sich die
 Minen offensichtlich unter denen befinden. Beispielsweise für den Fall, dass in der oberen linken Ecke eine 1 aufgedeckt wurde und Lösungen
@@ -138,15 +138,15 @@ dynamisch ändern).
 
 Je nachdem, wie viele Lösungen generiert worden sind, wird unterschiedlich weiter verfahren.
 \begin{enumerate}
-    \item \textbf{Es wurde keine gültige Lösung gefunden.} Konnte keine gültige Lösung gefunden werden, können wir nur damit weitermachen,
+    \item \textbf{Es wurde keine gültige Lösung gefunden.} Konnte keine gültige Lösung gefunden werden, kann nur damit weitergemacht werden,
     ein zufälliges Feld auszuwählen und aufzudecken und anschließend wieder zu AC-3 zu gehen.
-    \item \textbf{Es wurde genau eine gültige Lösung gefunden.} Konnte nur eine Lösung gefunden werden, dann kann direkt jedem der zugehörigen
-    Variablen sein Wert zugewiesen werden. Hier zugewiesene Minen können markiert und sichere Felder aufgedeckt werden. Danach wird wieder
+    \item \textbf{Es wurde genau eine gültige Lösung gefunden.} Konnte nur eine Lösung gefunden werden, dann kann direkt jeder der zugehörigen
+    Variablen ihr Wert zugewiesen werden. Hier zugewiesene Minen können markiert und sichere Felder aufgedeckt werden. Danach wird wieder
     AC-3 ausgeführt. 
     \item \textbf{Es wurden mehrere gültige Lösungen gefunden.} Konnten mehrere Lösungen gefunden werden, werden diese zuerst gemeinsam betrachtet.
     Sollte es sichere Felder in jeder Lösung geben, also solche, für welche die Variable immer 0 ist, können diese aufgedeckt und zu AC-3
     zurückgekehrt werden. Gibt es jedoch kein sicheres Feld, wird die erste Lösung ausgewählt und alle dort als sicher markierten Felder
-    aufgedeckt und auch zu AC-3 zurückgekehrt
+    aufgedeckt und auch zu AC-3 zurückgekehrt.
 \end{enumerate}
 
 \subsection{Determinierung}
@@ -154,7 +154,7 @@ Je nachdem, wie viele Lösungen generiert worden sind, wird unterschiedlich weit
 Der Algorithmus kann auf mehrere Arten determinieren. Folgend die Möglichkeiten:
 \begin{enumerate}
     \item Der Algorithmus determiniert, weil das Spiel nach Minesweeper Regeln beendet ist. Dies ist entweder der Fall, wenn alle Felder aufgedeckt
-    wurden, die keine Minen sind oder eine Mine aufgedeckt wurde. Der Solver könnte eine Mine aufdecken, wenn bei der Lösungsfindung in Backtracking keine Lösung
+    wurden, die keine Minen sind oder eine Mine aufgedeckt wurde. Der Solver könnte eine Mine aufdecken, wenn bei der Lösungsfindung im Backtracking keine Lösung
     gefunden und folgend ein zufälliges Feld aufgedeckt wurde.
     \item Der Algorithmus determiniert, weil der Solver konsistent ist. In dem Fall müssen vorher nicht alle Felder aufgedeckt sein, es wird
     aber der Vollständigkeits halber gemacht. Der Solver ist konsistent genau dann, wenn alle Variablen konsistent sind, 

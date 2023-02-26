@@ -17,6 +17,7 @@
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage[section]{placeins}
+\usepackage{pdfpages}
 
 \sisetup{locale = DE}     % siunitx locale setup
 %\DeclareSIUnit \fps{fps}  % a custom unit (usage: \SI{24}{\fps})
@@ -68,6 +69,6 @@
 \clearpage
 \bibliography{literature}
 
-\Istatement
+\includepdf[pages=-]{Erklaerung.pdf}
 
 \end{document}

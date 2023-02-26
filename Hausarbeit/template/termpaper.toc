@@ -2,14 +2,13 @@
 \contentsline {section}{\numberline {1}Einleitung}{1}{section.1}%
 \contentsline {section}{\numberline {2}Algorithmus}{2}{section.2}%
 \contentsline {subsection}{\numberline {2.1}Definition}{2}{subsection.2.1}%
-\contentsline {subsection}{\numberline {2.2}Besonderheiten Minesweeper}{2}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.2}Besonderheiten Minesweeper}{3}{subsection.2.2}%
 \contentsline {subsection}{\numberline {2.3}Ablauf}{3}{subsection.2.3}%
 \contentsline {subsubsection}{\numberline {2.3.1}Startpunkt und Aufdecken}{3}{subsubsection.2.3.1}%
 \contentsline {subsubsection}{\numberline {2.3.2}AC-3 und Revise}{4}{subsubsection.2.3.2}%
-\contentsline {subsubsection}{\numberline {2.3.3}Backtracking}{5}{subsubsection.2.3.3}%
-\contentsline {subsection}{\numberline {2.4}Determinierung}{7}{subsection.2.4}%
-\contentsline {section}{\numberline {3}Experimente und Ergebnisse}{8}{section.3}%
-\contentsline {section}{\numberline {4}Fazit und Aussicht}{9}{section.4}%
-\contentsline {section}{\nonumberline Literatur}{10}{section*.7}%
-\contentsline {section}{Selbstständigkeitserklärung}{11}{section*.7}%
+\contentsline {subsubsection}{\numberline {2.3.3}Backtracking}{6}{subsubsection.2.3.3}%
+\contentsline {subsection}{\numberline {2.4}Determinierung}{8}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Experimente und Ergebnisse}{9}{section.3}%
+\contentsline {section}{\numberline {4}Fazit und Aussicht}{10}{section.4}%
+\contentsline {section}{\nonumberline Literatur}{11}{section*.7}%
 \providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 
